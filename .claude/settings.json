@@ -2,7 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(curl -s http://localhost:3000/measurement-db/annotations/frontiermath)",
-      "Bash(python3 -I -c ' *)"
+      "Bash(python3 -I -c ' *)",
+      "Bash(./node_modules/.bin/next build *)",
+      "Bash(mv app/api /tmp/claude-501/-Users-maxhz-measurement-db/5b4f52cb-2876-4e88-a1c8-32df04f7d9ca/scratchpad/api-moved)",
+      "Bash(git ls-remote *)",
+      "WebSearch",
+      "WebFetch(domain:vercel.com)"
     ]
   }
 }
