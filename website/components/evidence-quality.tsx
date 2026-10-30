@@ -246,7 +246,15 @@ export function RubricPulldown() {
   );
 }
 
-export function EvidenceQuality({ bands }: { bands: readonly BandQuality[] }) {
+export function EvidenceQuality({
+  bands,
+  summary,
+}: {
+  bands: readonly BandQuality[];
+  /** A few sentences read across every rated code; a placeholder shows until
+   *  one is written. */
+  summary?: string;
+}) {
   if (bands.length === 0) return null;
 
   // Computed from the entries rather than from the band means, so the overall
@@ -273,9 +281,15 @@ export function EvidenceQuality({ bands }: { bands: readonly BandQuality[] }) {
               {all.length} rated
             </span>
           </div>
-          <p className="mt-4 border-t border-black/10 pt-3.5 text-sm font-light leading-relaxed opacity-45">
-            <span className="italic">Summary:</span> [fill out later]
-          </p>
+          {summary ? (
+            <p className="mt-4 border-t border-black/10 pt-3.5 text-base font-light leading-relaxed">
+              {summary}
+            </p>
+          ) : (
+            <p className="mt-4 border-t border-black/10 pt-3.5 text-sm font-light leading-relaxed opacity-45">
+              <span className="italic">Summary:</span> [fill out later]
+            </p>
+          )}
         </div>
       ) : null}
 

@@ -10,6 +10,7 @@ import {
 import {
   annotations,
   frontierMathEvidenceQuality,
+  frontierMathEvidenceSummary,
   claims,
   getAnnotation,
   type Annotation,
@@ -126,9 +127,9 @@ export default async function AnnotationReportPage({
   return (
     <main id="main-content">
       {/* ---------------------------------------------------------- header.
-          Dark band so the record reads as a self-contained dossier; the
-          summary table below sits on white for legibility. */}
-      <section className="rd-dark-band pb-14 pt-[clamp(128px,13vw,168px)]">
+          The site's standard beige page hero; the summary table below sits on
+          white for legibility. */}
+      <section className="rd-page-hero">
         <div className="rd-container">
           <div className="min-w-0">
             {eyebrow.length > 0 ? (
@@ -163,7 +164,7 @@ export default async function AnnotationReportPage({
                           href={source.href}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="underline underline-offset-4 decoration-white/40 hover:decoration-white"
+                          className="underline underline-offset-4 decoration-black/30 hover:decoration-black"
                         >
                           {source.label}
                         </a>
@@ -179,7 +180,7 @@ export default async function AnnotationReportPage({
             ) : null}
           </div>
 
-          <div className="mt-9 max-w-3xl border-l-2 border-white/30 pl-5">
+          <div className="mt-9 max-w-3xl border-l-2 border-black/20 pl-5">
             {annotation.summary ? (
               <p className="rd-serif-title text-xl leading-relaxed sm:text-2xl">
                 {annotation.summary}
@@ -190,7 +191,7 @@ export default async function AnnotationReportPage({
                 judged against it. */}
             <p
               className={`text-base font-light leading-relaxed opacity-45 ${
-                annotation.summary ? "mt-5 border-t border-white/15 pt-4" : ""
+                annotation.summary ? "mt-5 border-t border-black/10 pt-4" : ""
               }`}
             >
               <span className="italic">
@@ -336,9 +337,8 @@ export default async function AnnotationReportPage({
             </p>
           )}
 
-          {/* WORKING NOTE — remove before publication, like the summary brief
-              above. Kept in view so the open conflicts between the tree, the
-              table and the tallies stay visible while being settled. */}
+          {/* Public open questions: coding splits the evidence does not settle.
+              Internal to-dos are tracked privately, not here. */}
           {annotation.reconcile && annotation.reconcile.length > 0 ? (
             <div className="mt-12 border border-dashed border-black/30 bg-black/[0.035] p-6 sm:p-7">
               <p className="rd-mono !text-[0.62rem] uppercase tracking-wider opacity-60">
@@ -348,9 +348,9 @@ export default async function AnnotationReportPage({
                 Open questions &mdash; {annotation.reconcile.length}
               </h3>
               <p className="rd-prose-wide mt-3 text-sm font-light leading-relaxed opacity-70">
-                Where the tree, the table and the tallies don&rsquo;t line up
-                yet, or where we haven&rsquo;t settled a counting rule. Not
-                findings about the benchmark.
+                Where the annotators split and the public evidence doesn&rsquo;t
+                settle it. These describe our coding, not findings about the
+                benchmark.
               </p>
               <ul className="mt-5 flex max-w-4xl flex-col gap-3">
                 {annotation.reconcile.map((note) => (
@@ -391,33 +391,10 @@ export default async function AnnotationReportPage({
               <RubricPulldown />
             </div>
             <EvidenceHeatmap bands={frontierMathEvidenceQuality} />
-            <EvidenceQuality bands={frontierMathEvidenceQuality} />
-
-            {/* WORKING NOTE — remove before publication, like the others. */}
-            <div className="mt-10 border border-dashed border-black/30 bg-black/[0.035] p-6 sm:p-7">
-              <p className="rd-mono !text-[0.62rem] uppercase tracking-wider opacity-60">
-                Working note
-              </p>
-              <h3 className="rd-h3 mt-3">Open question &mdash; 1</h3>
-              <ul className="mt-5 flex max-w-4xl flex-col gap-3">
-                <li className="flex gap-3 text-sm font-light leading-relaxed opacity-60">
-                  <span
-                    className="mt-[0.5rem] size-1.5 shrink-0 rotate-45 border border-current"
-                    aria-hidden
-                  />
-                  <span>
-                    Search completeness is coded but not shown. It rates how
-                    hard an annotator looked before concluding a code had no
-                    support, so it is what makes a negative finding credible
-                    &mdash; a reader currently cannot tell a thorough null from
-                    a cursory one. It sits on a different scale from the four
-                    evidence dimensions and attaches to the codes nobody
-                    selected rather than to a rated code, so it needs its own
-                    place on the page. Decide where.
-                  </span>
-                </li>
-              </ul>
-            </div>
+            <EvidenceQuality
+              bands={frontierMathEvidenceQuality}
+              summary={frontierMathEvidenceSummary}
+            />
           </div>
         </section>
       ) : null}

@@ -37,11 +37,11 @@ const COL_W = 392;
 const PAD = 30;
 
 // Line heights and the character-width estimate used to break each run of text.
-const LINE = { q: 18, d: 15, v: 15 };
+const LINE = { q: 21, d: 17, v: 17 };
 const CHARS = {
-  q: Math.floor(COL_W / 7.0), // 13.5px semibold
-  d: Math.floor(COL_W / 5.75), // 11.5px regular
-  v: Math.floor(COL_W / 6.1), // 10.5px mono + label
+  q: Math.floor(COL_W / 8.05), // 15.5px semibold
+  d: Math.floor(COL_W / 6.5), // 13px regular
+  v: Math.floor(COL_W / 7.0), // 12px mono + label
 };
 const LEAF_GAP = 26;
 const BAND_GAP = 40;
@@ -385,7 +385,7 @@ export function AnnotationMindmap({
               x={CENTER}
               y={rootY + 6}
               textAnchor="middle"
-              className="fill-[var(--rd-sage)] text-[15px] font-semibold"
+              className="fill-[var(--rd-sage)] text-[17px] font-semibold"
             >
               {benchmarkName}
             </text>
@@ -394,18 +394,18 @@ export function AnnotationMindmap({
             {agreement ? (
               <text
                 textAnchor="middle"
-                className="rd-mono fill-current text-[10px] tabular-nums"
+                className="rd-mono fill-current text-[11.5px] tabular-nums"
                 opacity={0.62}
               >
-                <tspan x={CENTER} y={rootY + 44}>
+                <tspan x={CENTER} y={rootY + 46}>
                   RAA {agreement.multiRandom.toFixed(3)} multi ·{" "}
                   {agreement.singleRandom.toFixed(3)} single
                 </tspan>
-                <tspan x={CENTER} y={rootY + 60}>
+                <tspan x={CENTER} y={rootY + 64}>
                   BAA {agreement.multiObserved.toFixed(3)} multi ·{" "}
                   {agreement.singleObserved.toFixed(3)} single
                 </tspan>
-                <tspan x={CENTER} y={rootY + 76} opacity={0.75}>
+                <tspan x={CENTER} y={rootY + 82} opacity={0.75}>
                   {agreement.multiBoxes} boxes · {agreement.singleCount}{" "}
                   single-select
                 </tspan>
@@ -430,7 +430,7 @@ export function AnnotationMindmap({
                 x={BAND_X[band.side]}
                 y={band.y + 4}
                 textAnchor="middle"
-                className="rd-mono fill-current text-[10.5px] uppercase"
+                className="rd-mono fill-current text-[12px] uppercase"
                 style={{ letterSpacing: "0.07em" }}
               >
                 {band.index + 1} · {band.label}
@@ -443,7 +443,7 @@ export function AnnotationMindmap({
               const tx = TEXT_X[band.side];
               const anchor = band.side === "right" ? "start" : "end";
               let y = block.anchor;
-              const qy = y + 4;
+              const qy = y + 5;
               y += block.question.length * LINE.q + 6;
               const dy = y;
               y += block.detail.length * LINE.d + 6;
@@ -458,7 +458,7 @@ export function AnnotationMindmap({
                   <text
                     x={tx}
                     textAnchor={anchor}
-                    className="fill-current text-[13.5px] font-semibold"
+                    className="fill-current text-[15.5px] font-semibold"
                   >
                     {block.question.map((line, i) => (
                       <tspan key={line + i} x={tx} y={qy + i * LINE.q}>
@@ -469,7 +469,7 @@ export function AnnotationMindmap({
                   <text
                     x={tx}
                     textAnchor={anchor}
-                    className="fill-current text-[11.5px]"
+                    className="fill-current text-[13px]"
                     opacity={0.68}
                   >
                     {block.detail.map((line, i) => (
@@ -489,7 +489,7 @@ export function AnnotationMindmap({
                               key={vote.tally + vote.lines[0]}
                               x={tx}
                               textAnchor={anchor}
-                              className="text-[10.5px]"
+                              className="text-[12px]"
                               fill={
                                 vote.undocumented ? UNDOCUMENTED : "currentColor"
                               }
@@ -519,7 +519,7 @@ export function AnnotationMindmap({
                         6
                       }
                       textAnchor={anchor}
-                      className="rd-mono fill-current text-[9.5px] tabular-nums"
+                      className="rd-mono fill-current text-[11px] tabular-nums"
                       opacity={0.5}
                     >
                       {block.agree}

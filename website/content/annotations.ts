@@ -214,10 +214,10 @@ export type Annotation = {
   cutoff: string | null;
   /** Instrument-wide annotator agreement, shown under the root node. */
   agreement?: Agreement;
-  /** WORKING NOTE — remove before publication. Open issues where the tree, the
-   *  summary table and the coded tallies do not yet agree. Rendered under the
-   *  tree so they stay in view while being resolved; an empty or absent list
-   *  renders nothing. */
+  /** Open questions shown publicly under the tree: coding splits the public
+   *  evidence does not settle. Internal to-dos (page inconsistencies, counting
+   *  rules still to decide) are tracked privately and do not belong here. An
+   *  empty or absent list renders nothing. */
   reconcile?: readonly string[];
 };
 
@@ -822,15 +822,7 @@ export const annotations: readonly Annotation[] = [
       singleRandom: 0.5949,
     },
     reconcile: [
-      "Run records: each annotator picked a different pair of options (2/3 on all three). The leaf reads “Partial — Logs only for the 10 public problems”, which hides a three-way split about what run evidence exists at all.",
-      "Ties to developers: unanimous on four relationship types — funding, customer/vendor, research partnership and privileged model/API access — but the Neutrality summary bullet names only funding.",
-      "Scoring method: the leaf detail still says “Answer-checking code is public”. The summary bullet was tightened to note that per-item verifiers are withheld; the leaf should match.",
-      "Options nobody selected are invisible here, because the tally is built from what was chosen. A 0/3 line would show what was considered and rejected — for example, no public–private comparability evidence under Hidden-set coverage.",
       "Verification is 2–1, not settled. One annotator coded “operator reports external verification only”, citing Epoch-commissioned blind reviews and mathematician interviews; the other two excluded both as construction-stage and operator-commissioned.",
-      "Band order differs between views: the tree runs Durability first, the summary table starts at Validity. Pick one order.",
-      "Box universe: the 92 count includes the “other” and “unclear” options, which are free text — agreement on a free-text box is not well defined, and the Part 1 working sheet leaves Restricted audience’s “Other” blank and averages over the remaining five. Decide whether they are scored or excluded, and make both views match.",
-      "Verification scope is counted in the instrument-wide BAA but has no leaf in the tree, because it is conditional on an external check having occurred. For FrontierMath two annotators left it blank, so its eight boxes score as near-unanimous agreement about a question that did not apply. Decide whether conditional questions enter the denominator at all.",
-      "BAA does not reconcile with the working sheet: 92 boxes agreed, but the share totals differ (86.0 here against 85.3 there, giving 0.9348 against 0.92717). 85.3 cannot be produced by majority shares of 1 and 2/3 over 92 binary boxes — it would need 20.1 split boxes — so one side is treating about two boxes differently, or rounding mid-calculation. Worth tracing before either number is published.",
     ],
   },
   {
@@ -1081,6 +1073,11 @@ export function levelName(
   if (!dim) return null;
   return dim.levels[score - dim.min] ?? null;
 }
+
+/** Read across all 129 rated codes. The counts are hand-copied from the
+ *  entries below; recount them if the ratings change. */
+export const frontierMathEvidenceSummary =
+  "Almost all of this evidence is Epoch's own account: 126 of the 129 rated codes cite an operator-official source, and none cites an independent one. Just over half (71) are only stated, not shown, and none reached Confirmed. What an outsider can inspect, the public sample problems, the scoring harness and dated run details, sits under Validity and Integrity, while Durability rests almost entirely on statements (33 of 40). Corroboration, where there is any, comes from Epoch's other pages, never from a second party. Nothing was contradicted, so the record is consistent, but most of it has to be taken on the operator's word.";
 
 export const frontierMathEvidenceQuality: readonly BandQuality[] = [
   {

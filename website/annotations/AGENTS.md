@@ -58,10 +58,9 @@ By claim          4 rows: Validity, Integrity, Neutrality, Verification
                   × Strengths | Concerns | What would make it checkable
 By item           mindmap (computed layout) with verbatim questions, selection
                   tallies, QAA/QRAA per question, BAA/RAA under the root
-                  → working-notes panel, 9 open
+                  → public open-questions panel, 1 (Verification split)
 Evidence quality  rubric pulldown (verbatim) → heatmap → All codes + Summary slot
                   → band pulldowns → question → code → per-annotator scores
-                  → working-notes panel, 1 open
 Sources           38 titled links
 ```
 
@@ -154,9 +153,11 @@ question (cheap, over-attributes), or match on quote text rather than header
 
 **FrontierMath**
 
-1. Fill the `Summary: [fill out later]` slot in the evidence-quality section.
-2. Resolve the working-notes panels — 9 open under the tree, 1 under evidence
-   quality.
+1. Review the evidence-quality summary (`frontierMathEvidenceSummary` in
+   `annotations.ts`). Its counts are hand-copied, so recount if ratings change.
+2. Settle the Verification split shown in the open-questions panel. The
+   internal reconciliation items that used to sit on the page are tracked
+   privately.
 3. Fix the code transfer error above.
 
 **The other three benchmarks**
@@ -221,7 +222,8 @@ question (cheap, over-attributes), or match on quote text rather than header
   common spelling is kept.
 - Status marks differ in **shape as well as colour**, so they survive greyscale
   and colour-vision deficiency. Keep it that way.
-- Blocks marked as working notes — the summary brief and the open-questions
-  panels — are drafting aids and come out before publication.
+- The summary brief is a drafting aid and comes out before publication. The
+  open-questions panel is public: only questions meant for readers go there;
+  internal to-dos stay off the page.
 - `.rd-mono` sets its own font weight, so plain `font-bold` on a mono span does
   nothing. Use `!font-bold`.
