@@ -155,15 +155,14 @@ export function EvidenceHeatmap({ bands }: { bands: readonly BandQuality[] }) {
                     <tr key={question.leaf}>
                       <th
                         scope="row"
-                        className="relative h-9 w-px whitespace-nowrap pr-5 text-left align-middle text-sm font-light opacity-75"
+                        className="h-9 w-px whitespace-nowrap pr-5 text-left align-middle text-sm font-light opacity-75"
                       >
                         {/* The row carries only the item's name; the full
-                            question is on hover. Absolute, not in flow: a
-                            growing row would throw the grid out of line. */}
+                            question shows below it on hover. */}
                         <span className="rd-tip peer">
                           {question.question.split("—")[0].trim()}
                         </span>
-                        <span className="absolute left-0 top-full z-10 hidden w-max max-w-md whitespace-normal border border-black/15 bg-white p-2.5 text-sm font-light leading-snug peer-hover:block">
+                        <span className="hidden max-w-md whitespace-normal text-sm font-light leading-snug opacity-60 peer-hover:block">
                           {question.question}
                         </span>
                       </th>
