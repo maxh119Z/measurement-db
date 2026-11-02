@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ActionLink } from "@/components/action-link";
 import { AnnotationMindmap } from "@/components/annotation-mindmap";
+import { EvidenceCeilings } from "@/components/evidence-ceilings";
 import { EvidenceHeatmap } from "@/components/evidence-heatmap";
 import {
   EvidenceQuality,
@@ -70,6 +71,29 @@ function MetaFact({
       <span className="rd-mono !text-[0.6rem] opacity-50">{label}</span>
       <span className="text-sm font-light">{children}</span>
     </div>
+  );
+}
+
+/** A numbered caption for a figure or table. Figures and tables are numbered
+ *  in two separate sequences, in the order they appear down the page. */
+function Caption({
+  label,
+  children,
+}: {
+  label: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <p className="rd-prose-wide mt-5 text-sm font-light leading-relaxed">
+      <span className="rd-mono !text-[0.62rem] uppercase tracking-wider">
+        {label}
+      </span>{" "}
+      {children ?? (
+        <span className="italic opacity-45">
+          [one-sentence summary to be written]
+        </span>
+      )}
+    </p>
   );
 }
 
@@ -213,14 +237,6 @@ export default async function AnnotationReportPage({
         <div className="rd-container">
           <p className="rd-mono opacity-60">Summary</p>
           <h2 className="rd-h2 mt-4">By claim</h2>
-          <p className="rd-prose-wide mt-4 text-base font-light leading-relaxed opacity-70">
-            A rough summary &mdash; one row per claim, read off the coded items
-            rather than reproducing them. These are judgments about available
-            evidence, not about the benchmark&rsquo;s quality: a gap means
-            nothing supporting it was found by the{" "}
-            {annotation.cutoff ?? "corpus"} cutoff, not that the practice is
-            absent. The item-by-item detail sits below.
-          </p>
 
           <div className="mt-9 overflow-x-auto">
             <table className="w-full min-w-[46rem] border-collapse text-left">
@@ -302,6 +318,15 @@ export default async function AnnotationReportPage({
             </table>
           </div>
 
+          <Caption label="Table 1">
+            A rough summary &mdash; one row per claim, read off the coded items
+            rather than reproducing them. These are judgments about available
+            evidence, not about the benchmark&rsquo;s quality: a gap means
+            nothing supporting it was found by the{" "}
+            {annotation.cutoff ?? "corpus"} cutoff, not that the practice is
+            absent. The item-by-item detail sits below.
+          </Caption>
+
           {annotation.readingScores ? (
             <p className="rd-prose-wide mt-8 text-sm font-light leading-relaxed">
               <span className="font-medium">Reading its scores: </span>
@@ -326,11 +351,19 @@ export default async function AnnotationReportPage({
             a single number.
           </p>
           {annotation.bands.length > 0 ? (
-            <AnnotationMindmap
-              benchmarkName={annotation.name}
-              bands={annotation.bands}
-              agreement={annotation.agreement}
-            />
+            <>
+              <AnnotationMindmap
+                benchmarkName={annotation.name}
+                bands={annotation.bands}
+                agreement={annotation.agreement}
+              />
+              <Caption label="Figure 1">
+                Every coded item, grouped under the five codebook parts, with
+                the per-option selection tallies behind each one &mdash; a
+                purple tally is an option the form offered that no annotator
+                selected.
+              </Caption>
+            </>
           ) : (
             <p className="mt-8 border-t border-black/10 pt-6 text-sm font-light italic opacity-45">
               Not yet coded.
@@ -387,14 +420,35 @@ export default async function AnnotationReportPage({
               &mdash; a low verifiability beside a high source independence
               means a reliable source saying something nobody outside can check. They are not meant to be aggregated.
             </p>
-            <div className="mt-8">
+            <h3 className="rd-h3 mt-10">Where the evidence runs out</h3>
+            <EvidenceCeilings bands={frontierMathEvidenceQuality} />
+            <Caption label="Figure 2">{frontierMathEvidenceSummary}</Caption>
+
+            <EvidenceHeatmap bands={frontierMathEvidenceQuality} />
+            <Caption label="Figure 3">
+              The same four scores per coded item rather than pooled, so a
+              column can be read down to see which parts of the record rest on
+              assertion and which point at something an outsider could check.
+            </Caption>
+
+            {/* Rubric below the figures it explains, as a reference rather
+                than a preamble. */}
+            <div className="mt-10">
               <RubricPulldown />
             </div>
-            <EvidenceHeatmap bands={frontierMathEvidenceQuality} />
-            <EvidenceQuality
-              bands={frontierMathEvidenceQuality}
-              summary={frontierMathEvidenceSummary}
-            />
+            <Caption label="Table 2">
+              The rubric every rated code was scored against, reproduced
+              verbatim, including the rule that the four dimensions are
+              recorded separately and never added together.
+            </Caption>
+
+            {/* Per-code rationale last: it is the most text on the page. */}
+            <EvidenceQuality bands={frontierMathEvidenceQuality} />
+            <Caption label="Table 3">
+              Every rated code opened up to the annotators who scored it, with
+              the quote and source each one cited, so any score here can be
+              traced back to the evidence it was read from.
+            </Caption>
           </div>
         </section>
       ) : null}

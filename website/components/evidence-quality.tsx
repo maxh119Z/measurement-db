@@ -246,53 +246,11 @@ export function RubricPulldown() {
   );
 }
 
-export function EvidenceQuality({
-  bands,
-  summary,
-}: {
-  bands: readonly BandQuality[];
-  /** A few sentences read across every rated code; a placeholder shows until
-   *  one is written. */
-  summary?: string;
-}) {
+export function EvidenceQuality({ bands }: { bands: readonly BandQuality[] }) {
   if (bands.length === 0) return null;
-
-  // Computed from the entries rather than from the band means, so the overall
-  // figure is not an average of rounded averages.
-  const all = bands.flatMap((band) =>
-    band.questions.flatMap((question) => question.entries),
-  );
-  const overall = all.length
-    ? (Object.fromEntries(
-        DIMS.map((key) => [
-          key,
-          all.reduce((sum, entry) => sum + entry[key], 0) / all.length,
-        ]),
-      ) as { v: number; s: number; p: number; c: number })
-    : null;
 
   return (
     <div className="mt-6 flex flex-col gap-4">
-      {overall ? (
-        <div className="border border-black/15 bg-white/55 p-4 sm:p-5">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-            <span className="rd-h3">Summary:</span>
-            <span className="rd-mono !text-[0.6rem] opacity-45">
-              {all.length} rated
-            </span>
-          </div>
-          {summary ? (
-            <p className="mt-4 border-t border-black/10 pt-3.5 text-base font-light leading-relaxed">
-              {summary}
-            </p>
-          ) : (
-            <p className="mt-4 border-t border-black/10 pt-3.5 text-sm font-light leading-relaxed opacity-45">
-              <span className="italic">Summary:</span> [fill out later]
-            </p>
-          )}
-        </div>
-      ) : null}
-
       <div className="border border-black/15 bg-white/55">
         {bands.map((band) => (
           <details key={band.id} className="group border-b border-black/10 last:border-b-0">

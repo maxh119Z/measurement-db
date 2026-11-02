@@ -1719,3 +1719,23 @@ dialog.rd-search-dialog::backdrop {
   font-family: var(--rd-mono);
   font-size: 0.78rem;
 }
+
+/* Hoverable rubric term. The dotted underline marks it; the definition itself
+   shows as a real line of text below, revealed with peer-hover in the
+   components rather than as a floating bubble. */
+.rd-tip {
+  cursor: help;
+  text-decoration: underline dotted rgba(0, 0, 0, 0.3);
+  text-underline-offset: 4px;
+}
+
+/* Annotator-agreement toggle. The agreement figures are about how consistently
+   we coded, not about the benchmark, so they are off by default and revealed
+   together. `:has()` rather than JS: the targets are scattered down the tree,
+   too deep for a sibling selector to reach. */
+.rd-agree {
+  display: none;
+}
+.rd-tree:has(.rd-agree-toggle:checked) .rd-agree {
+  display: block;
+}

@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 import type { BandQuality, QualityEntry } from "@/content/annotations";
+import { evidenceRubric } from "@/content/annotations";
 
 /* ============================================================
    EvidenceHeatmap — every question against the four evidence
@@ -25,9 +26,17 @@ const DIMS = [
   { key: "c", letter: "C", name: "Corroboration", floor: 0 },
 ] as const;
 
+/** Dimension key -> the rubric's own definition, shown on hover. */
+const DEFINITION: Record<string, string> = Object.fromEntries(
+  evidenceRubric.map((dim) => [dim.key, `${dim.question} ${dim.rule}`]),
+);
+
 /** Diverging ramp over 0–3. Midpoint 1.5 is pale; below it goes purple, above
- *  it goes teal. Returns a background and a readable foreground. */
-function cellColor(value: number): { bg: string; fg: string } {
+ *  it goes teal. Returns a background and a readable foreground.
+ *
+ *  Exported so the ceilings figure shades its level bands off the same ramp —
+ *  purple and teal have to mean the same thing in both figures. */
+export function cellColor(value: number): { bg: string; fg: string } {
   const t = Math.max(0, Math.min(1, value / 3));
   // distance from the pale midpoint, 0 at 1.5 and 1 at either end
   const d = Math.abs(t - 0.5) * 2;
@@ -93,15 +102,24 @@ export function EvidenceHeatmap({ bands }: { bands: readonly BandQuality[] }) {
                   Question
                 </span>
               </th>
+              {/* Equal widths, so the longest name does not win a wider
+                  column. Definition on hover. */}
               {DIMS.map((dim) => (
                 <th
                   key={dim.key}
                   scope="col"
-                  className="pb-2 align-bottom text-center"
-                  title={dim.name}
+                  className="w-28 pb-2 align-bottom text-center"
                 >
                   <span className="rd-mono !text-[0.6rem] uppercase tracking-wider opacity-55">
                     {dim.letter}
+                  </span>
+                  <span className="rd-tip peer mt-1 block text-[0.7rem] font-light leading-tight opacity-55">
+                    {dim.name}
+                  </span>
+                  {/* Fixed to the column width, so revealing it grows the
+                      header row without widening the column. */}
+                  <span className="mt-1 hidden w-28 text-left text-[0.68rem] font-light leading-snug opacity-60 peer-hover:block">
+                    {DEFINITION[dim.key]}
                   </span>
                 </th>
               ))}
@@ -137,10 +155,17 @@ export function EvidenceHeatmap({ bands }: { bands: readonly BandQuality[] }) {
                     <tr key={question.leaf}>
                       <th
                         scope="row"
-                        className="h-9 w-px whitespace-nowrap pr-5 text-left align-middle text-sm font-light opacity-75"
-                        title={question.question}
+                        className="relative h-9 w-px whitespace-nowrap pr-5 text-left align-middle text-sm font-light opacity-75"
                       >
-                        {question.question.split("—")[0].trim()}
+                        {/* The row carries only the item's name; the full
+                            question is on hover. Absolute, not in flow: a
+                            growing row would throw the grid out of line. */}
+                        <span className="rd-tip peer">
+                          {question.question.split("—")[0].trim()}
+                        </span>
+                        <span className="absolute left-0 top-full z-10 hidden w-max max-w-md whitespace-normal border border-black/15 bg-white p-2.5 text-sm font-light leading-snug peer-hover:block">
+                          {question.question}
+                        </span>
                       </th>
                       {DIMS.map((dim) => (
                         <Cell
@@ -189,12 +214,6 @@ export function EvidenceHeatmap({ bands }: { bands: readonly BandQuality[] }) {
             0 purple &rarr; 3 teal. Each cell is a mean across the annotators
             who rated that question.
           </span>
-        </span>
-        <span className="text-sm font-light opacity-55">
-          V cannot fall below 1: the rubric starts it at &ldquo;Stated&rdquo;,
-          since every cited source at least states the fact. The other three
-          start at 0, so a pale V is a weaker result than the same colour in
-          another column.
         </span>
       </figcaption>
     </figure>

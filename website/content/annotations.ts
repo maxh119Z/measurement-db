@@ -961,6 +961,92 @@ export function getAnnotation(slug: string): Annotation | undefined {
 //  the rubric, which is why they carry no scores here.
 // ---------------------------------------------------------------------------
 
+/** Option code -> the codebook's own definition, transcribed verbatim from
+ *  the v3.1 "Code definitions" column. Keys are lower-cased because coders
+ *  typed both "Items/tasks" and "items/tasks"; look up with `codeDefinition`. */
+export const codeDefinitions: Record<string, string> = {
+  "access controls": "restricts who accesses protected material",
+  "adaptive gaming/overfitting": "prevent repeated probing or benchmark-specific tuning",
+  "aggregation/reporting rules": "how component results become the reported score",
+  "aggregation/threshold rules public": "combination, cutoff, weighting, or tie rules are public",
+  "benchmark participant/user": "ordinary person or team using/submitting to the benchmark",
+  "benchmark version/snapshot": "exact benchmark release or snapshot is identifiable",
+  "confidentiality/legal": "restricted because of privacy, licensing, regulation, or legal duty",
+  "contamination/leakage": "prevent test content from entering training/retrieval data",
+  "contamination/overlap monitoring": "checks for leakage, memorization, or dataset overlap",
+  "controlled inspection only": "scoring details can be inspected only under restricted access",
+  "controlled-access run records": "relevant run records exist but require restricted access",
+  "customer/client": "paying or contracted benchmark user",
+  "customer/vendor relationship": "one party buys services/products from the other",
+  "dated/versioned protocol": "relevant rules/content are tied to a public date or version before the result",
+  "detailed task blueprint/schema": "documentation specifies task structure, inputs, outputs, or construction without revealing live items",
+  "differential/privileged treatment disclosed or permitted": "documentation states or allows materially different treatment",
+  "documented expert or independent review of hidden set": "reviewers assess hidden-set coverage or appropriateness",
+  "environment/tools/data": "hidden execution state, tools, files, or test data",
+  "evaluated provider/team": "organization or team whose model/system is being scored",
+  "evaluator or third-party replay possible": "documented process allows the run/result to be replayed by the evaluator or another party",
+  "evaluator runs the model/system": "evaluator operates or queries the evaluated system",
+  "evaluator/scorer version": "evaluation harness, judge, or scorer version is identifiable",
+  "failure/exclusion handling": "rules specify how invalid, failed, or excluded cases are treated",
+  "fair or blind evaluation": "keep participants from seeing material needed for an unbiased comparison",
+  "fresh/on-demand generation": "creates new evaluation material for runs/releases",
+  "funding/sponsorship": "evaluated provider funds or sponsors the evaluator/benchmark",
+  "general public": "anyone without special access",
+  "hosted task/evaluation api": "protected tasks are served through an API or hosted interface",
+  "indefinite/no planned release": "no release endpoint is stated",
+  "independent researcher": "outside researcher without evaluator privileges",
+  "inference/system configuration": "material evaluation settings are recorded",
+  "intended use or decision purpose": "states how the result is meant to be used",
+  "items/tasks": "evaluation prompts, cases, questions, or instances",
+  "judge/scorer details public": "relevant judge model, scorer, prompt, or implementation details are public",
+  "labels/reference answers": "ground truth or expected answers",
+  "limits or out-of-scope interpretation": "states what the score should not be taken to mean",
+  "measured capability/construct": "states what ability/property the score is meant to measure",
+  "metric/formula public": "score computation is publicly specified",
+  "model version/checkpoint": "exact evaluated model/version is identifiable",
+  "model/system eligibility or configuration": "rules constrain what system/configuration may be evaluated",
+  "no external verification located": "no evidence of an external check was found",
+  "not reported": "no rationale located",
+  "operator reports external verification only": "only the benchmark operator states that an outside check occurred",
+  "other": "stated rationale not covered above",
+  "other material tie": "relevant tie not covered above",
+  "prediction submission to server": "participant sends outputs for hidden scoring",
+  "preregistration or immutable commitment": "preregistration, hash, signed commitment, or similar prevents silent later changes",
+  "privileged model/data/api access": "evaluator receives access not generally available to comparable parties",
+  "proprietary/ip": "protected as non-public commercial or intellectual property",
+  "public": "eligibility/access rules are openly available",
+  "public outputs/logs/run record": "outsiders can inspect outputs, logs, or a run record",
+  "public-private comparability evidence": "directly compares public and private splits/distributions/difficulty",
+  "refresh/rotation": "periodically replaces protected items",
+  "representative public items/dev set": "public examples show the same basic task form as the private evaluation",
+  "research/technical partnership": "documented collaboration relevant to the benchmark or evaluated system",
+  "result reporting/publication rules": "rules govern which results are reported or published",
+  "retirement/replacement": "withdraws degraded versions or sets",
+  "rubric/judge criteria public": "qualitative grading criteria are public",
+  "rubric/judge/scorer": "criteria or system used to judge outputs",
+  "run date": "evaluation date/time is recorded",
+  "run logs/configuration": "records or settings from evaluation runs",
+  "same organization/affiliate": "evaluator and evaluated provider share ownership or organizational control",
+  "sampling/source method documented": "explains where hidden items come from or how they are sampled",
+  "secure/controlled environment": "evaluation occurs in a restricted room, enclave, or similar setting",
+  "security/safety": "disclosure could create security or misuse risk",
+  "submission/rate limits": "limits repeated attempts",
+  "submission/retry/rerun rules": "rules govern repeated attempts or reruns",
+  "submitted code/container": "participant submits executable code/container for organizer-side evaluation",
+  "target domain/population": "states the tasks, users, systems, or setting to which the result applies",
+  "task selection/randomization": "rules specify how tasks are selected, ordered, or randomized",
+  "task subset/seed/session": "evaluated subset, random seed, or run/session identifier is recorded",
+  "test membership/distribution": "which items are in the test set or how they are sampled",
+  "third-party platform/custodian": "an external platform or custodian holds/runs protected material",
+  "third-party/escrow confirmation": "an external party or escrow held/confirmed the relevant material before results",
+  "unclear": "restriction is evident but the audience cannot be identified",
+};
+
+/** Case-insensitive lookup for a code's codebook definition. */
+export function codeDefinition(code: string): string | undefined {
+  return codeDefinitions[code.trim().toLowerCase()];
+}
+
 /** One dimension of the rubric, for the reference pulldown. */
 export type RubricDimension = {
   key: "v" | "s" | "p" | "c" | "search";
@@ -970,6 +1056,8 @@ export type RubricDimension = {
   /** Level -> short name, indexed from `min`. */
   min: number;
   levels: readonly string[];
+  /** The rubric's own definition of each level, same order as `levels`. */
+  levelNotes: readonly string[];
   rule: string;
 };
 
@@ -981,6 +1069,11 @@ export const evidenceRubric: readonly RubricDimension[] = [
     question: "Does the evidence show the fact holds, or only state it?",
     min: 1,
     levels: ["Stated", "Inspectable", "Confirmed"],
+    levelNotes: [
+      "A claim or promise no outsider can check.",
+      "An outsider can check it: code, public items, logs, or the page itself for disclosure codes.",
+      "Someone other than the source checked it and documented the result.",
+    ],
     rule: "Rate what an outsider could check today. Plans and promises count as Stated. Runs 1–3 because every cited source at least states the fact.",
   },
   {
@@ -995,6 +1088,12 @@ export const evidenceRubric: readonly RubricDimension[] = [
       "Operator official",
       "Independent",
     ],
+    levelNotes: [
+      "Author unknown.",
+      "The evaluated provider or funder, or operator staff on a forum or social media.",
+      "The operator's site, paper, repository or changelog.",
+      "An outside party you checked and found no ties.",
+    ],
     rule: "Rate who wrote this piece of evidence, not who hosts it. This rates the source, not the benchmark's ties.",
   },
   {
@@ -1004,6 +1103,12 @@ export const evidenceRubric: readonly RubricDimension[] = [
     question: "Does the evidence cover this code, for this version?",
     min: 0,
     levels: ["Off-target", "Adjacent", "On-target", "Exact"],
+    levelNotes: [
+      "A different benchmark or property.",
+      "An earlier version, a sibling tier, operator-wide practice, or unclear whether it counts as evidence for the code.",
+      "This benchmark and code, without specifics.",
+      "This version, with checkable specifics: counts, dates, IDs.",
+    ],
     rule: "Evidence that needs an inference scores at most 1. Exact means this version, with checkable specifics.",
   },
   {
@@ -1013,6 +1118,12 @@ export const evidenceRubric: readonly RubricDimension[] = [
     question: "Do other sources agree?",
     min: 0,
     levels: ["Contradicted", "Single", "Same party", "Cross-party"],
+    levelNotes: [
+      "An unresolved conflict; the code is tagged Unclear.",
+      "One source.",
+      "Separate sources from the same party agree.",
+      "A source from a different party agrees.",
+    ],
     rule: "Count sources, not copies. Silence is not agreement.",
   },
   {
@@ -1023,6 +1134,12 @@ export const evidenceRubric: readonly RubricDimension[] = [
       "How thoroughly did you search before concluding a code has no support?",
     min: 0,
     levels: ["Minimal", "Partial", "Complete", "Targeted"],
+    levelNotes: [
+      "One or two core sources.",
+      "At least one core source skipped.",
+      "Every core source checked.",
+      "As Complete, plus a keyword search for the missing concept and a web search.",
+    ],
     rule: "Core sources: benchmark page, paper, code repository, docs or FAQ, changelog, operator posts, dataset card. Targeted adds a keyword search and a web search.",
   },
 ];
@@ -1077,7 +1194,7 @@ export function levelName(
 /** Read across all 129 rated codes. The counts are hand-copied from the
  *  entries below; recount them if the ratings change. */
 export const frontierMathEvidenceSummary =
-  "Almost all of this evidence is Epoch's own account: 126 of the 129 rated codes cite an operator-official source, and none cites an independent one. Just over half (71) are only stated, not shown, and none reached Confirmed. What an outsider can inspect, the public sample problems, the scoring harness and dated run details, sits under Validity and Integrity, while Durability rests almost entirely on statements (33 of 40). Corroboration, where there is any, comes from Epoch's other pages, never from a second party. Nothing was contradicted, so the record is consistent, but most of it has to be taken on the operator's word.";
+  "Most of the evidence is Epoch's own account: 126 of 129 rated codes cite the operator, none an independent source. Nothing was contradicted, but nothing reached Confirmed, meaning checked by someone other than the source, or Cross-party. D: the reasons given for withholding are almost all assertion, 33 of 40 codes only Stated. V: the most checkable band, with 20 of 32 codes pointing at something an outsider can inspect. I: the run and scoring rules are the most precise, 15 codes Exact, and the least corroborated, 31 of 37 resting on a Single source. N: all 19 codes on funding and access come from Epoch or OpenAI, so the conflict of interest is disclosed only by the parties to it. Ver: one code, Stated and no further, because no outside check was found.";
 
 export const frontierMathEvidenceQuality: readonly BandQuality[] = [
   {

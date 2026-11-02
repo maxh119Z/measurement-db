@@ -1,50 +1,31 @@
-import type {
-  Agreement,
-  Band,
-  Leaf,
-  LeafStatus,
-} from "@/content/annotations";
-import { leafStatusLabel } from "@/content/annotations";
+import type { Agreement, Band, Leaf, LeafStatus } from "@/content/annotations";
+import { claims, codeDefinition } from "@/content/annotations";
+import { TreeConnectors } from "./tree-connectors";
+
+/** Band id -> definition, shown on hover. Durability is a band but not one of
+ *  the trust claims, so it is not in `claims` and is defined here instead. */
+const BAND_DEF: Record<string, string> = {
+  durability:
+    "Whether the benchmark stays informative as models and developers adapt to it. This is not a fourth claim: it is the constraint that sets how much can be disclosed, so it determines the limits within which the other three can be verified at all. A benchmark can be highly durable while showing little evidence of validity or integrity, and a fully inspectable one can lose durability to contamination or repeated adaptation.",
+  ...Object.fromEntries(claims.map((claim) => [claim.id, claim.definition])),
+};
 
 /* ============================================================
    AnnotationMindmap — every coded item as a two-sided tree with
    the benchmark at the centre.
 
-   Layout is COMPUTED, not authored: no coordinate appears in the
-   data. Each leaf carries its verbatim question, its status and
-   detail, and every selection tally, so leaf blocks differ in
-   height; a band sits at the mean anchor of its own leaves and
-   the root at the middle of the canvas. Connectors are plain
-   elbows rather than curves.
+   HTML, not SVG. Each leaf is a native <details>, so the tree is
+   one line per item until something is opened and the browser
+   reflows the column around it. That is the whole reason this is
+   not SVG: <text> cannot wrap and a viewBox cannot grow, so the
+   old build-time layout had to render every leaf expanded.
 
-   SVG <text> does not wrap, so lines are broken here at build
-   time from a character-width estimate and emitted as <tspan>s.
-   The estimate is deliberately conservative: over-wrapping costs
-   a little height, under-wrapping would overflow the column.
+   Geometry is CSS grid: left column, centre spine, right column,
+   with the band rules and leaf ticks drawn as borders. Collapses
+   to a single column below `lg`, where the mirroring is dropped.
 
-   Server component — the page is static, so this runs once per
-   build.
+   Server component, and no client JS anywhere in it.
    ============================================================ */
-
-const W = 1760;
-const CENTER = W / 2;
-const ROOT_HALF = 95;
-const BAND_HALF = 78;
-const BAND_X = { left: 610, right: W - 610 };
-const MARK_X = { left: 420, right: W - 420 };
-const TEXT_X = { left: 402, right: W - 402 };
-const COL_W = 392;
-const PAD = 30;
-
-// Line heights and the character-width estimate used to break each run of text.
-const LINE = { q: 21, d: 17, v: 17 };
-const CHARS = {
-  q: Math.floor(COL_W / 8.05), // 15.5px semibold
-  d: Math.floor(COL_W / 6.5), // 13px regular
-  v: Math.floor(COL_W / 7.0), // 12px mono + label
-};
-const LEAF_GAP = 26;
-const BAND_GAP = 40;
 
 type Side = "left" | "right";
 
@@ -58,9 +39,7 @@ const SIDE_OF: Record<string, Side> = {
 
 /** An option on the form that no annotator selected. Not a status — it is the
  *  rest of the question's option set, shown so the reader can see what was
- *  considered and passed over. Codes that are exclusive of the positive
- *  options ("none documented" and the two negative tie codes) are omitted at
- *  0/n, since they could not have been selected once anything else was. */
+ *  considered and passed over. */
 const UNDOCUMENTED = "#7A4FBF";
 
 const MARK_FILL: Record<LeafStatus, string> = {
@@ -71,127 +50,8 @@ const MARK_FILL: Record<LeafStatus, string> = {
   desc: "#8A949C",
 };
 
-/** Greedy wrap on spaces. A single word longer than the limit is left intact
- *  rather than hyphenated — the column has slack and codes must stay verbatim. */
-function wrap(text: string, maxChars: number): string[] {
-  const words = text.split(/\s+/).filter(Boolean);
-  const lines: string[] = [];
-  let line = "";
-  for (const word of words) {
-    const next = line ? `${line} ${word}` : word;
-    if (next.length > maxChars && line) {
-      lines.push(line);
-      line = word;
-    } else {
-      line = next;
-    }
-  }
-  if (line) lines.push(line);
-  return lines.length ? lines : [""];
-}
-
-type Block = {
-  key: string;
-  status: LeafStatus;
-  question: string[];
-  detail: string[];
-  votes: { tally: string; lines: string[]; undocumented: boolean }[];
-  /** Per-question agreement line, or null when the question is uncoded. */
-  agree: string | null;
-  /** y of the status mark and the first question line. */
-  anchor: number;
-  height: number;
-};
-
-function buildBlock(band: Band, leaf: Leaf): Block {
-  const question = wrap(leaf.question, CHARS.q);
-  const detail = wrap(
-    `${leaf.status === "desc" ? "Descriptive" : leafStatusLabel[leaf.status]} — ${leaf.detail}`,
-    CHARS.d,
-  );
-  const votes = (leaf.votes ?? []).map((vote) => ({
-    tally: `${vote.k}/${vote.n}`,
-    lines: wrap(vote.code, CHARS.v - 5),
-    undocumented: vote.k === 0,
-  }));
-  const voteLines = votes.reduce((sum, v) => sum + v.lines.length, 0);
-  const agree =
-    leaf.qaa != null && leaf.qraa != null
-      ? `QAA ${leaf.qaa.toFixed(3)}  ·  QRAA ${leaf.qraa.toFixed(3)}${
-          leaf.kind === "single" ? `  (1 of ${leaf.options})` : ""
-        }`
-      : null;
-  const height =
-    question.length * LINE.q +
-    6 +
-    detail.length * LINE.d +
-    (votes.length ? 6 + voteLines * LINE.v : 0) +
-    (agree ? 6 + LINE.v : 0);
-  return {
-    key: `${band.id}-${leaf.name}`,
-    status: leaf.status,
-    question,
-    detail,
-    votes,
-    agree,
-    anchor: 0,
-    height,
-  };
-}
-
-type PlacedBand = {
-  id: string;
-  label: string;
-  index: number;
-  side: Side;
-  y: number;
-  blocks: Block[];
-};
-
-function placeSide(
-  entries: { band: Band; index: number }[],
-  side: Side,
-  height: number,
-): PlacedBand[] {
-  let y = 0;
-  const placed = entries.map(({ band, index }) => {
-    const blocks = band.leaves.map((leaf) => {
-      const block = buildBlock(band, leaf);
-      block.anchor = y + 10;
-      y += block.height + LEAF_GAP;
-      return block;
-    });
-    y += BAND_GAP - LEAF_GAP;
-    const mid = blocks.length
-      ? (blocks[0].anchor + blocks[blocks.length - 1].anchor) / 2
-      : y;
-    return { id: band.id, label: band.label, index, side, y: mid, blocks };
-  });
-  const used = y - (BAND_GAP - LEAF_GAP);
-  const offset = PAD + (height - 2 * PAD - used) / 2;
-  for (const band of placed) {
-    band.y += offset;
-    for (const block of band.blocks) block.anchor += offset;
-  }
-  return placed;
-}
-
-function sideHeight(entries: { band: Band; index: number }[]): number {
-  let total = 0;
-  for (const { band } of entries) {
-    for (const leaf of band.leaves) {
-      total += buildBlock(band, leaf).height + LEAF_GAP;
-    }
-    total += BAND_GAP - LEAF_GAP;
-  }
-  return total - (BAND_GAP - LEAF_GAP);
-}
-
-function elbow(x1: number, y1: number, x2: number, y2: number): string {
-  const mx = (x1 + x2) / 2;
-  return `M${x1},${y1} H${mx} V${y2} H${x2}`;
-}
-
+/** Status marks differ in shape as well as colour, so they survive greyscale
+ *  and colour-vision deficiency. */
 function StatusMark({
   status,
   x,
@@ -233,7 +93,246 @@ function StatusMark({
   );
 }
 
-/** The key, rendered above the plot as HTML so it wraps on narrow screens. */
+function Mark({ status }: { status: LeafStatus }) {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 12 12"
+      aria-hidden
+      className="mt-[0.3rem] shrink-0"
+    >
+      <StatusMark status={status} x={6} y={6} />
+    </svg>
+  );
+}
+
+function Chevron() {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 12 12"
+      fill="none"
+      aria-hidden
+      className="mt-[0.3rem] shrink-0 opacity-65 transition-transform duration-200 group-open:rotate-180"
+    >
+      <path
+        d="M2 4.5 6 8.5l4-4"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** One coded item. Closed it is the verbatim question plus its agreement
+ *  score; open it adds the coded answer and every per-option tally. */
+function LeafItem({ leaf, side }: { leaf: Leaf; side: Side }) {
+  const agree =
+    leaf.qaa != null && leaf.qraa != null
+      ? `QAA ${leaf.qaa.toFixed(3)}  ·  QRAA ${leaf.qraa.toFixed(3)}${
+          leaf.kind === "single" ? `  (1 of ${leaf.options})` : ""
+        }`
+      : null;
+  const mirror = side === "left";
+
+  return (
+    <details className="group">
+      <summary
+        className={`flex cursor-pointer list-none items-start gap-2 py-2 [&::-webkit-details-marker]:hidden ${
+          mirror ? "lg:flex-row-reverse lg:text-right" : ""
+        }`}
+      >
+        <Chevron />
+        <Mark status={leaf.status} />
+        <span className="min-w-0 flex-1 text-[0.95rem] font-medium leading-snug">
+          {leaf.question}
+        </span>
+      </summary>
+
+      <div
+        className={`flex flex-col gap-2 pb-4 ${
+          mirror ? "lg:items-end lg:text-right" : ""
+        }`}
+      >
+        {leaf.votes && leaf.votes.length > 0 ? (
+          <ul className="flex flex-col gap-1">
+            {leaf.votes.map((vote) => {
+              const def = codeDefinition(vote.code);
+              return (
+                <li
+                  key={vote.code}
+                  className="text-[0.8rem] leading-snug"
+                  style={vote.k === 0 ? { color: UNDOCUMENTED } : undefined}
+                >
+                  <span className="rd-mono !text-[0.62rem] tabular-nums">
+                    {vote.k}/{vote.n}
+                  </span>{" "}
+                  <span
+                    className={`${def ? "rd-tip peer" : ""} ${
+                      vote.k === 0 ? "" : "opacity-65"
+                    }`}
+                  >
+                    {vote.code}
+                  </span>
+                  {def ? (
+                    <span className="hidden max-w-sm text-sm font-light leading-snug opacity-60 peer-hover:block">
+                      {def}
+                    </span>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        ) : null}
+        {agree ? (
+          <p className="rd-agree rd-mono !text-[0.6rem] tabular-nums opacity-50">
+            {agree}
+          </p>
+        ) : null}
+      </div>
+    </details>
+  );
+}
+
+/** One codebook part: its label, then its items hanging off a vertical rule. */
+function BandBlock({
+  band,
+  index,
+  side,
+}: {
+  band: Band;
+  index: number;
+  side: Side;
+}) {
+  const mirror = side === "left";
+  return (
+    <section
+      className={`relative flex flex-col gap-2 ${mirror ? "lg:items-end" : ""}`}
+    >
+      <div className={`flex flex-col gap-1.5 ${mirror ? "lg:items-end" : ""}`}>
+        <h4
+          data-tree-band={side}
+          className="rd-mono rd-tip peer !text-[0.68rem] uppercase tracking-wider"
+        >
+          {index + 1} &middot; {band.label}
+        </h4>
+        {BAND_DEF[band.id] ? (
+          <span className="hidden max-w-sm text-sm font-light leading-snug opacity-60 peer-hover:block">
+            {BAND_DEF[band.id]}
+          </span>
+        ) : null}
+      </div>
+      <ul
+        className={`flex w-full flex-col border-black/15 ${
+          mirror ? "border-l pl-5 lg:border-l-0 lg:border-r lg:pl-0 lg:pr-5" : "border-l pl-5"
+        }`}
+      >
+        {band.leaves.map((leaf) => (
+          <li
+            key={leaf.name}
+            className={`relative before:absolute before:top-[0.85rem] before:w-3 before:border-t before:border-black/15 ${
+              mirror
+                ? "before:-left-5 lg:before:left-auto lg:before:-right-5"
+                : "before:-left-5"
+            }`}
+          >
+            <LeafItem leaf={leaf} side={side} />
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+export function AnnotationMindmap({
+  benchmarkName,
+  bands,
+  agreement,
+}: {
+  benchmarkName: string;
+  bands: readonly Band[];
+  agreement?: Agreement;
+}) {
+  if (bands.length === 0) return null;
+
+  const indexed = bands.map((band, index) => ({ band, index }));
+  const right = indexed.filter(
+    ({ band }) => (SIDE_OF[band.id] ?? "right") === "right",
+  );
+  // Reversed so the left column reads upward from the lowest-numbered band.
+  const left = indexed
+    .filter(({ band }) => SIDE_OF[band.id] === "left")
+    .reverse();
+
+  return (
+    <div className="rd-tree">
+      <Key />
+      <figure className="mt-7">
+        <div className="relative grid gap-8 lg:grid-cols-[1fr_18rem_1fr] lg:gap-10">
+          <TreeConnectors />
+          <div className="flex flex-col gap-9">
+            {left.map(({ band, index }) => (
+              <BandBlock
+                key={band.id}
+                band={band}
+                index={index}
+                side="left"
+              />
+            ))}
+          </div>
+
+          <div className="relative order-first flex items-center justify-center lg:order-none">
+            {/* Every connector starts on this pill's edge — see
+                TreeConnectors, which measures it. */}
+            <div className="relative z-10 flex flex-col items-center gap-3">
+              <span
+                data-tree-root
+                className="rounded-full bg-[var(--rd-dark)] px-5 py-2 text-[1.05rem] font-semibold text-[var(--rd-sage)]"
+              >
+                {benchmarkName}
+              </span>
+              {/* Instrument-wide agreement, split because multi- and
+                  single-select have different chance baselines. */}
+              {agreement ? (
+                <span className="rd-agree rd-mono !text-[0.62rem] space-y-1 bg-[var(--rd-sage)] px-3 py-1 text-center tabular-nums opacity-60">
+                  <span className="block">
+                    RAA {agreement.multiRandom.toFixed(3)} multi &middot;{" "}
+                    {agreement.singleRandom.toFixed(3)} single
+                  </span>
+                  <span className="block">
+                    BAA {agreement.multiObserved.toFixed(3)} multi &middot;{" "}
+                    {agreement.singleObserved.toFixed(3)} single
+                  </span>
+                  <span className="block opacity-75">
+                    {agreement.multiBoxes} boxes &middot;{" "}
+                    {agreement.singleCount} single-select
+                  </span>
+                </span>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-9">
+            {right.map(({ band, index }) => (
+              <BandBlock
+                key={band.id}
+                band={band}
+                index={index}
+                side="right"
+              />
+            ))}
+          </div>
+        </div>
+      </figure>
+    </div>
+  );
+}
+
+/** The key, above the tree so the marks and abbreviations are read first. */
 function Key() {
   const entries: { status: LeafStatus; label: string; gloss: string }[] = [
     { status: "ok", label: "Documented", gloss: "public evidence answers it" },
@@ -259,7 +358,10 @@ function Key() {
       "QRAA",
       "the same question answered at random — 0.750 for any checkbox question, lower for single-select with more options",
     ],
-    ["BAA", "benchmark annotator agreement — the QAA figures pooled across the whole instrument"],
+    [
+      "BAA",
+      "benchmark annotator agreement — the QAA figures pooled across the whole instrument",
+    ],
     ["RAA", "the chance baseline pooled the same way"],
   ];
   return (
@@ -295,242 +397,37 @@ function Key() {
           </span>
         </span>
       </div>
-      <div className="flex flex-col gap-1.5 border-t border-black/10 pt-3.5">
-        {terms.map(([abbr, gloss]) => (
-          <span
-            key={abbr}
-            className="flex items-baseline gap-2.5 text-sm font-light"
-          >
-            <span className="rd-mono !text-[0.62rem] w-12 shrink-0">
-              {abbr}
+      {/* Agreement is a property of our coding, not of the benchmark, so it
+          is off until asked for. The checkbox drives the whole tree through
+          `:has()` — see `.rd-agree` in redesign.css. */}
+      <div className="border-t border-black/10 pt-3.5">
+        <label className="flex w-fit cursor-pointer items-center gap-2.5 text-sm font-light">
+          <input
+            type="checkbox"
+            className="rd-agree-toggle size-3.5 accent-[var(--rd-dark)]"
+          />
+          <span>Show annotator agreement</span>
+        </label>
+        <div className="rd-agree mt-3.5">
+          <div className="flex flex-col gap-1.5">
+            {terms.map(([abbr, gloss]) => (
+              <span
+                key={abbr}
+                className="flex items-baseline gap-2.5 text-sm font-light"
+              >
+                <span className="rd-mono !text-[0.62rem] w-12 shrink-0">
+                  {abbr}
+                </span>
+                <span className="opacity-60">{gloss}</span>
+              </span>
+            ))}
+            <span className="mt-1 text-sm font-light opacity-55">
+              A score at or near its random baseline means the coders were no
+              more consistent than chance, not that the benchmark did badly.
             </span>
-            <span className="opacity-60">{gloss}</span>
-          </span>
-        ))}
-        <span className="mt-1 text-sm font-light opacity-55">
-          A score at or near its random baseline means the coders were no more
-          consistent than chance, not that the benchmark did badly.
-        </span>
+          </div>
+        </div>
       </div>
     </div>
-  );
-}
-
-export function AnnotationMindmap({
-  benchmarkName,
-  bands,
-  agreement,
-}: {
-  benchmarkName: string;
-  bands: readonly Band[];
-  agreement?: Agreement;
-}) {
-  if (bands.length === 0) return null;
-
-  const indexed = bands.map((band, index) => ({ band, index }));
-  const right = indexed.filter(
-    ({ band }) => (SIDE_OF[band.id] ?? "right") === "right",
-  );
-  // Reversed so the left column reads upward from the lowest-numbered band.
-  const left = indexed
-    .filter(({ band }) => SIDE_OF[band.id] === "left")
-    .reverse();
-
-  const H = Math.max(sideHeight(right), sideHeight(left)) + PAD * 2;
-  const placed = [
-    ...placeSide(right, "right", H),
-    ...placeSide(left, "left", H),
-  ];
-  const rootY = H / 2;
-
-  return (
-    <>
-      <Key />
-      <figure className="mt-7 overflow-x-auto">
-        <svg
-          viewBox={`0 0 ${W} ${H}`}
-          className="h-auto w-full min-w-[72rem]"
-          role="img"
-          aria-label={`${benchmarkName}: five codebook parts branching into their coded items, each with its question, status and per-option selection tallies.`}
-        >
-          {placed.map((band) => {
-            const bx = BAND_X[band.side];
-            const rootEdge =
-              band.side === "right" ? CENTER + ROOT_HALF : CENTER - ROOT_HALF;
-            const inner = band.side === "right" ? bx - BAND_HALF : bx + BAND_HALF;
-            const outer = band.side === "right" ? bx + BAND_HALF : bx - BAND_HALF;
-            return (
-              <g key={`edges-${band.id}`} stroke="currentColor" strokeOpacity={0.22} strokeWidth={1.25} fill="none">
-                <path d={elbow(rootEdge, rootY, inner, band.y)} />
-                {band.blocks.map((block) => (
-                  <path
-                    key={`edge-${block.key}`}
-                    d={elbow(outer, band.y, MARK_X[band.side], block.anchor)}
-                  />
-                ))}
-              </g>
-            );
-          })}
-
-          <g>
-            <rect
-              x={CENTER - ROOT_HALF}
-              y={rootY - 20}
-              width={ROOT_HALF * 2}
-              height={40}
-              rx={20}
-              fill="currentColor"
-            />
-            <text
-              x={CENTER}
-              y={rootY + 6}
-              textAnchor="middle"
-              className="fill-[var(--rd-sage)] text-[17px] font-semibold"
-            >
-              {benchmarkName}
-            </text>
-            {/* Instrument-wide agreement, split because multi- and
-                single-select have different chance baselines. */}
-            {agreement ? (
-              <text
-                textAnchor="middle"
-                className="rd-mono fill-current text-[11.5px] tabular-nums"
-                opacity={0.62}
-              >
-                <tspan x={CENTER} y={rootY + 46}>
-                  RAA {agreement.multiRandom.toFixed(3)} multi ·{" "}
-                  {agreement.singleRandom.toFixed(3)} single
-                </tspan>
-                <tspan x={CENTER} y={rootY + 64}>
-                  BAA {agreement.multiObserved.toFixed(3)} multi ·{" "}
-                  {agreement.singleObserved.toFixed(3)} single
-                </tspan>
-                <tspan x={CENTER} y={rootY + 82} opacity={0.75}>
-                  {agreement.multiBoxes} boxes · {agreement.singleCount}{" "}
-                  single-select
-                </tspan>
-              </text>
-            ) : null}
-          </g>
-
-          {placed.map((band) => (
-            <g key={`band-${band.id}`}>
-              <rect
-                x={BAND_X[band.side] - BAND_HALF}
-                y={band.y - 13}
-                width={BAND_HALF * 2}
-                height={26}
-                rx={13}
-                fill="currentColor"
-                fillOpacity={0.07}
-                stroke="currentColor"
-                strokeOpacity={0.2}
-              />
-              <text
-                x={BAND_X[band.side]}
-                y={band.y + 4}
-                textAnchor="middle"
-                className="rd-mono fill-current text-[12px] uppercase"
-                style={{ letterSpacing: "0.07em" }}
-              >
-                {band.index + 1} · {band.label}
-              </text>
-            </g>
-          ))}
-
-          {placed.flatMap((band) =>
-            band.blocks.map((block) => {
-              const tx = TEXT_X[band.side];
-              const anchor = band.side === "right" ? "start" : "end";
-              let y = block.anchor;
-              const qy = y + 5;
-              y += block.question.length * LINE.q + 6;
-              const dy = y;
-              y += block.detail.length * LINE.d + 6;
-              const vy = y;
-              return (
-                <g key={`leaf-${block.key}`}>
-                  <StatusMark
-                    status={block.status}
-                    x={MARK_X[band.side]}
-                    y={block.anchor}
-                  />
-                  <text
-                    x={tx}
-                    textAnchor={anchor}
-                    className="fill-current text-[15.5px] font-semibold"
-                  >
-                    {block.question.map((line, i) => (
-                      <tspan key={line + i} x={tx} y={qy + i * LINE.q}>
-                        {line}
-                      </tspan>
-                    ))}
-                  </text>
-                  <text
-                    x={tx}
-                    textAnchor={anchor}
-                    className="fill-current text-[13px]"
-                    opacity={0.68}
-                  >
-                    {block.detail.map((line, i) => (
-                      <tspan key={line + i} x={tx} y={dy + i * LINE.d}>
-                        {line}
-                      </tspan>
-                    ))}
-                  </text>
-                  {block.votes.length > 0
-                    ? (() => {
-                        let row = 0;
-                        return block.votes.map((vote) => {
-                          const first = row;
-                          row += vote.lines.length;
-                          return (
-                            <text
-                              key={vote.tally + vote.lines[0]}
-                              x={tx}
-                              textAnchor={anchor}
-                              className="text-[12px]"
-                              fill={
-                                vote.undocumented ? UNDOCUMENTED : "currentColor"
-                              }
-                              opacity={vote.undocumented ? 0.85 : 0.6}
-                            >
-                              {vote.lines.map((line, i) => (
-                                <tspan
-                                  key={line + i}
-                                  x={tx}
-                                  y={vy + (first + i) * LINE.v}
-                                >
-                                  {i === 0 ? `${vote.tally}  ${line}` : line}
-                                </tspan>
-                              ))}
-                            </text>
-                          );
-                        });
-                      })()
-                    : null}
-                  {block.agree ? (
-                    <text
-                      x={tx}
-                      y={
-                        vy +
-                        block.votes.reduce((s, v) => s + v.lines.length, 0) *
-                          LINE.v +
-                        6
-                      }
-                      textAnchor={anchor}
-                      className="rd-mono fill-current text-[11px] tabular-nums"
-                      opacity={0.5}
-                    >
-                      {block.agree}
-                    </text>
-                  ) : null}
-                </g>
-              );
-            }),
-          )}
-        </svg>
-      </figure>
-    </>
   );
 }
