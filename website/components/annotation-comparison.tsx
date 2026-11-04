@@ -1,13 +1,15 @@
 import type { Route } from "next";
 import Link from "next/link";
 import { ScrollReveal } from "@/components/scroll-reveal";
+import { Square } from "@/components/annotation-square";
 import {
   comparisonQuestions,
   durabilityFacts,
   type ComparisonQuestion,
 } from "@/content/annotation-comparisons";
 import {
-  annotationStatusLabel,
+  bandDefinition,
+  codeDefinition,
   type Annotation,
 } from "@/content/annotations";
 import type {
@@ -53,27 +55,6 @@ function tallyText(tally: Tally | null): string {
   return `${tally.k} of ${tally.n} annotators`;
 }
 
-/** A square for one code: filled (2–3 of 3), dotted (1 of 3), empty (0). */
-function Square({ tally }: { tally: Tally | null }) {
-  const k = tally?.k ?? 0;
-  return (
-    <span
-      className={`relative block size-[22px] rounded-[3px] border-[1.5px] ${
-        k >= 2
-          ? "border-current bg-current"
-          : k === 1
-            ? "border-current"
-            : "border-black/25"
-      }`}
-      aria-hidden
-    >
-      {k === 1 ? (
-        <span className="absolute left-1/2 top-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-current" />
-      ) : null}
-    </span>
-  );
-}
-
 function Strip({
   config,
   question,
@@ -94,6 +75,10 @@ function Strip({
   const firstGap = options.findIndex((o) => notLocated.has(o.code.toLowerCase()));
 
   return (
+    // `relative` plus the reserved strip below: a code's definition appears
+    // under the whole strip, not squeezed into its own narrow column, and the
+    // space is held open so hovering never moves the card.
+    <div className="relative pb-11">
     <ul
       className="grid gap-x-1.5"
       style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
@@ -103,6 +88,7 @@ function Strip({
         const label = shortLabel(config.labels, option.code, config.variable);
         const gap = notLocated.has(option.code.toLowerCase());
         const split = tally && tally.k > 0 && tally.k < tally.n;
+        const definition = codeDefinition(option.code);
         return (
           <li
             key={option.code}
@@ -113,7 +99,9 @@ function Strip({
           >
             <Square tally={tally} />
             <span
-              className={`text-[0.62rem] leading-tight opacity-80 ${gap ? "italic" : ""}`}
+              className={`peer text-[0.62rem] leading-tight opacity-80 ${
+                gap ? "italic" : ""
+              } ${definition ? "rd-tip" : ""}`}
               style={MONO}
             >
               {label}
@@ -123,11 +111,18 @@ function Strip({
                 {tally.k}/{tally.n}
               </span>
             ) : null}
+            {definition ? (
+              <span className="pointer-events-none absolute inset-x-0 bottom-0 hidden text-left text-[0.72rem] font-light leading-snug opacity-70 peer-hover:block">
+                <span className="font-medium">{option.code}</span> &mdash;{" "}
+                {definition}
+              </span>
+            ) : null}
             <span className="sr-only">{tallyText(tally)}</span>
           </li>
         );
       })}
     </ul>
+    </div>
   );
 }
 
@@ -165,18 +160,6 @@ function Fact({
       </dd>
     </>
   );
-}
-
-function cutoffLabel(cutoff: string | null): string | null {
-  if (!cutoff) return null;
-  const date = new Date(`${cutoff}T00:00:00Z`);
-  if (Number.isNaN(date.getTime())) return cutoff;
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    timeZone: "UTC",
-  });
 }
 
 function Legend() {
@@ -222,34 +205,29 @@ export function AnnotationComparisons({
         return (
           <div key={config.variable} className="mt-14">
             <p className="rd-mono opacity-60">
-              {config.part} · {config.partLabel}
+              <span className="rd-tip peer">
+                {config.part} · {config.partLabel}
+              </span>
+              <span className="rd-prose-wide mt-2 hidden text-sm font-light normal-case leading-snug tracking-normal opacity-70 peer-hover:block">
+                {bandDefinition(config.partLabel)}
+              </span>
             </p>
             <h3 className="rd-h3 mt-3">{config.title}</h3>
-            <p className="rd-prose-wide mt-3 text-sm font-light leading-relaxed opacity-70">
-              {config.why}
-            </p>
-            <p className="rd-prose-wide mt-1.5 text-xs font-light italic opacity-50">
+            <p className="rd-prose-wide mt-3 text-xs font-light italic opacity-50">
               Codebook question: &ldquo;{question.question}&rdquo;
             </p>
 
             <ScrollReveal stagger>
               <ul className="mt-6 grid gap-5 sm:grid-cols-2">
                 {annotations.map((annotation) => {
-                  const eyebrow = [annotation.operator, annotation.domain]
-                    .filter(Boolean)
-                    .join(" · ");
-                  const cutoff = cutoffLabel(annotation.cutoff);
                   return (
                     <li key={annotation.slug} className="reveal">
                       <Link
                         href={`/annotations/${annotation.slug}` as Route}
                         className="rd-card h-full gap-4"
                       >
-                        {lead && eyebrow ? (
-                          <span className="rd-mono !text-[0.62rem] opacity-55">
-                            {eyebrow}
-                          </span>
-                        ) : null}
+                        {/* Operator, status and cutoff live on the record
+                            cards above; repeating them here was noise. */}
                         <span className={lead ? "rd-h3" : "text-xl font-light"}>
                           {annotation.name}
                         </span>
@@ -259,28 +237,16 @@ export function AnnotationComparisons({
                           slug={annotation.slug}
                         />
                         {lead ? (
-                          <>
-                            <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
-                              {durabilityFacts.map((fact) => (
-                                <Fact
-                                  key={fact.variable}
-                                  {...fact}
-                                  results={results}
-                                  slug={annotation.slug}
-                                />
-                              ))}
-                            </dl>
-                            <span className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 pt-1">
-                              <span className="rd-chip">
-                                {annotationStatusLabel[annotation.status]}
-                              </span>
-                              {cutoff ? (
-                                <span className="rd-mono !text-[0.58rem] opacity-50">
-                                  Evidence to {cutoff}
-                                </span>
-                              ) : null}
-                            </span>
-                          </>
+                          <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
+                            {durabilityFacts.map((fact) => (
+                              <Fact
+                                key={fact.variable}
+                                {...fact}
+                                results={results}
+                                slug={annotation.slug}
+                              />
+                            ))}
+                          </dl>
                         ) : null}
                       </Link>
                     </li>

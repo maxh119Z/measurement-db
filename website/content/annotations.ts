@@ -869,6 +869,7 @@ export function getAnnotation(slug: string): Annotation | undefined {
  *  typed both "Items/tasks" and "items/tasks"; look up with `codeDefinition`. */
 export const codeDefinitions: Record<string, string> = {
   "access controls": "restricts who accesses protected material",
+  "access/participant records": "participation, access, or treatment records",
   "adaptive gaming/overfitting": "prevent repeated probing or benchmark-specific tuning",
   "aggregation/reporting rules": "how component results become the reported score",
   "aggregation/threshold rules public": "combination, cutoff, weighting, or tie rules are public",
@@ -882,6 +883,7 @@ export const codeDefinitions: Record<string, string> = {
   "customer/client": "paying or contracted benchmark user",
   "customer/vendor relationship": "one party buys services/products from the other",
   "dated/versioned protocol": "relevant rules/content are tied to a public date or version before the result",
+  "detailed public findings": "substantive methods and findings are publicly available",
   "detailed task blueprint/schema": "documentation specifies task structure, inputs, outputs, or construction without revealing live items",
   "differential/privileged treatment disclosed or permitted": "documentation states or allows materially different treatment",
   "documented expert or independent review of hidden set": "reviewers assess hidden-set coverage or appropriateness",
@@ -890,13 +892,18 @@ export const codeDefinitions: Record<string, string> = {
   "evaluator or third-party replay possible": "documented process allows the run/result to be replayed by the evaluator or another party",
   "evaluator runs the model/system": "evaluator operates or queries the evaluated system",
   "evaluator/scorer version": "evaluation harness, judge, or scorer version is identifiable",
+  "explicit no material ties": "documentation explicitly states none",
+  "external with a material tie": "verifier is outside the operator but has a relevant documented tie",
   "failure/exclusion handling": "rules specify how invalid, failed, or excluded cases are treated",
   "fair or blind evaluation": "keep participants from seeing material needed for an unbiased comparison",
+  "fixed or event-bounded release": "release follows a stated date, delay, competition, or evaluation round",
   "fresh/on-demand generation": "creates new evaluation material for runs/releases",
   "funding/sponsorship": "evaluated provider funds or sponsors the evaluator/benchmark",
   "general public": "anyone without special access",
+  "governance/conflicts": "funding, relationships, or governance arrangements",
   "hosted task/evaluation api": "protected tasks are served through an API or hosted interface",
   "indefinite/no planned release": "no release endpoint is stated",
+  "independent external": "no material organizational, financial, or governance tie is documented",
   "independent researcher": "outside researcher without evaluator privileges",
   "inference/system configuration": "material evaluation settings are recorded",
   "intended use or decision purpose": "states how the result is meant to be used",
@@ -906,31 +913,46 @@ export const codeDefinitions: Record<string, string> = {
   "limits or out-of-scope interpretation": "states what the score should not be taken to mean",
   "measured capability/construct": "states what ability/property the score is meant to measure",
   "metric/formula public": "score computation is publicly specified",
+  "mixed by component": "different protected components follow different lifecycles",
   "model version/checkpoint": "exact evaluated model/version is identifiable",
   "model/system eligibility or configuration": "rules constrain what system/configuration may be evaluated",
+  "n/a": "no external verification occurred/was located",
   "no external verification located": "no evidence of an external check was found",
+  "no findings located": "verification occurred but no findings disclosure was found",
+  "no relationship information located": "no relevant disclosure was found",
+  "no rules located": "no eligibility/access rules were found",
+  "none documented": "no durability control located",
   "not reported": "no rationale located",
   "operator reports external verification only": "only the benchmark operator states that an outside check occurred",
   "other": "stated rationale not covered above",
   "other material tie": "relevant tie not covered above",
+  "participants/customers or on request only": "rules are available only after joining, paying, applying, or requesting access",
   "prediction submission to server": "participant sends outputs for hidden scoring",
   "preregistration or immutable commitment": "preregistration, hash, signed commitment, or similar prevents silent later changes",
   "privileged model/data/api access": "evaluator receives access not generally available to comparable parties",
   "proprietary/ip": "protected as non-public commercial or intellectual property",
+  "protected content/coverage": "hidden items, sampling, or representativeness",
   "public": "eligibility/access rules are openly available",
+  "public documentation only": "verifier reviewed only material already public",
   "public outputs/logs/run record": "outsiders can inspect outputs, logs, or a run record",
+  "public summary/conclusion": "only a high-level result or conclusion is public",
   "public-private comparability evidence": "directly compares public and private splits/distributions/difficulty",
   "refresh/rotation": "periodically replaces protected items",
+  "relationship unclear": "external verification occurred but independence cannot be determined",
   "representative public items/dev set": "public examples show the same basic task form as the private evaluation",
   "research/technical partnership": "documented collaboration relevant to the benchmark or evaluated system",
+  "restricted/confidential findings": "findings exist but are not public",
   "result reporting/publication rules": "rules govern which results are reported or published",
   "retirement/replacement": "withdraws degraded versions or sets",
+  "rolling release/replacement": "old protected material is released or replaced as new material becomes private",
   "rubric/judge criteria public": "qualitative grading criteria are public",
   "rubric/judge/scorer": "criteria or system used to judge outputs",
   "run date": "evaluation date/time is recorded",
   "run logs/configuration": "records or settings from evaluation runs",
+  "run/execution records": "logs, configurations, outputs, or execution procedure",
   "same organization/affiliate": "evaluator and evaluated provider share ownership or organizational control",
   "sampling/source method documented": "explains where hidden items come from or how they are sampled",
+  "scoring/rubric": "metric, rubric, judge, or scoring process",
   "secure/controlled environment": "evaluation occurs in a restricted room, enclave, or similar setting",
   "security/safety": "disclosure could create security or misuse risk",
   "submission/rate limits": "limits repeated attempts",
@@ -943,11 +965,28 @@ export const codeDefinitions: Record<string, string> = {
   "third-party platform/custodian": "an external platform or custodian holds/runs protected material",
   "third-party/escrow confirmation": "an external party or escrow held/confirmed the relevant material before results",
   "unclear": "restriction is evident but the audience cannot be identified",
+  "uniform treatment explicitly stated": "documentation says comparable participants receive the same relevant access/conditions",
+  "until benchmark retirement": "material is released only when that version/benchmark is retired",
+  "verification existence only": "public information says verification occurred but gives no finding",
+  "verifier-authored or other external evidence located": "an outside verifier or independent source documents that a check occurred",
 };
 
 /** Case-insensitive lookup for a code's codebook definition. */
 export function codeDefinition(code: string): string | undefined {
   return codeDefinitions[code.trim().toLowerCase()];
+}
+
+/** Codebook part -> definition. The four trust claims take the paper's own
+ *  wording from `claims`; Durability is a band but not a claim, so it is
+ *  defined here. Keyed by lower-cased band id or part label. */
+const bandDefinitions: Record<string, string> = {
+  durability:
+    "Whether the benchmark stays informative as models and developers adapt to it. This is not a fourth claim: it is the constraint that sets how much can be disclosed, so it determines the limits within which the other three can be verified at all. A benchmark can be highly durable while showing little evidence of validity or integrity, and a fully inspectable one can lose durability to contamination or repeated adaptation.",
+  ...Object.fromEntries(claims.map((claim) => [claim.id, claim.definition])),
+};
+
+export function bandDefinition(band: string): string | undefined {
+  return bandDefinitions[band.trim().toLowerCase()];
 }
 
 /** One dimension of the rubric, for the reference pulldown. */

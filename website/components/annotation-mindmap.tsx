@@ -1,15 +1,8 @@
 import type { Band, Leaf, LeafStatus } from "@/content/annotations";
 import type { AgreementRow, QuestionAgreement } from "@/lib/annotation-results";
-import { claims, codeDefinition } from "@/content/annotations";
+import { bandDefinition, codeDefinition } from "@/content/annotations";
 import { TreeConnectors } from "./tree-connectors";
 
-/** Band id -> definition, shown on hover. Durability is a band but not one of
- *  the trust claims, so it is not in `claims` and is defined here instead. */
-const BAND_DEF: Record<string, string> = {
-  durability:
-    "Whether the benchmark stays informative as models and developers adapt to it. This is not a fourth claim: it is the constraint that sets how much can be disclosed, so it determines the limits within which the other three can be verified at all. A benchmark can be highly durable while showing little evidence of validity or integrity, and a fully inspectable one can lose durability to contamination or repeated adaptation.",
-  ...Object.fromEntries(claims.map((claim) => [claim.id, claim.definition])),
-};
 
 /* ============================================================
    AnnotationMindmap — every coded item as a two-sided tree with
@@ -254,9 +247,9 @@ function BandBlock({
         >
           {index + 1} &middot; {band.label}
         </h4>
-        {BAND_DEF[band.id] ? (
+        {bandDefinition(band.id) ? (
           <span className="hidden max-w-sm text-sm font-light leading-snug opacity-60 peer-hover:block">
-            {BAND_DEF[band.id]}
+            {bandDefinition(band.id)}
           </span>
         ) : null}
         {part ? (
