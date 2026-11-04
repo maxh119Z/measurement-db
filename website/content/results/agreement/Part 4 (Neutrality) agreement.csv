@@ -1,0 +1,13 @@
+Question,Code,FrontierMath,GDPval,METR Time Horizon / HCAST task suite,SWE-bench Pro
+Participation-rule visibility,,1.0,0.67,1.0,0.67
+Differential-treatment disclosure,,1.0,1.0,1.0,0.67
+Evaluator–provider ties,Same organization/affiliate,1.0,1.0,1.0,1.0
+Evaluator–provider ties,funding/sponsorship,1.0,0.67,0.67,0.67
+Evaluator–provider ties,customer/vendor relationship,1.0,1.0,1.0,1.0
+Evaluator–provider ties,research/technical partnership,1.0,1.0,1.0,0.67
+Evaluator–provider ties,privileged model/data/API access,1.0,1.0,1.0,1.0
+Evaluator–provider ties,other material tie,0.67,1.0,1.0,0.67
+Evaluator–provider ties,explicit no material ties,1.0,1.0,1.0,1.0
+Evaluator–provider ties,no relationship information located,1.0,1.0,1.0,1.0
+Evaluator–provider ties,(mean over codes),0.96,0.96,0.96,0.88
+(mean over questions),,0.99,0.88,0.99,0.74

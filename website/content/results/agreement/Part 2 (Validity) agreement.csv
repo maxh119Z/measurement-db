@@ -1,0 +1,24 @@
+Question,Code,FrontierMath,GDPval,METR Time Horizon / HCAST task suite,SWE-bench Pro
+Claim framing,Measured capability/construct,1.0,1.0,1.0,1.0
+Claim framing,intended use or decision purpose,1.0,1.0,1.0,1.0
+Claim framing,target domain/population,1.0,1.0,1.0,1.0
+Claim framing,limits or out-of-scope interpretation,1.0,1.0,1.0,1.0
+Claim framing,none documented,1.0,1.0,1.0,1.0
+Claim framing,(mean over codes),1.0,1.0,1.0,1.0
+Task transparency,Representative public items/dev set,1.0,1.0,1.0,1.0
+Task transparency,detailed task blueprint/schema,0.67,1.0,1.0,1.0
+Task transparency,none documented,1.0,1.0,1.0,1.0
+Task transparency,(mean over codes),0.89,1.0,1.0,1.0
+Hidden-set coverage evidence,Sampling/source method documented,1.0,1.0,1.0,1.0
+Hidden-set coverage evidence,public-private comparability evidence,1.0,1.0,1.0,1.0
+Hidden-set coverage evidence,documented expert or independent review of hidden set,1.0,1.0,0.67,0.67
+Hidden-set coverage evidence,none documented,1.0,1.0,1.0,1.0
+Hidden-set coverage evidence,(mean over codes),1.0,1.0,0.92,0.92
+Scoring transparency,Metric/formula public,1.0,1.0,1.0,1.0
+Scoring transparency,rubric/judge criteria public,1.0,0.67,0.67,1.0
+Scoring transparency,judge/scorer details public,1.0,1.0,0.67,1.0
+Scoring transparency,aggregation/threshold rules public,1.0,1.0,1.0,1.0
+Scoring transparency,controlled inspection only,1.0,1.0,1.0,1.0
+Scoring transparency,none documented,1.0,1.0,1.0,1.0
+Scoring transparency,(mean over codes),1.0,0.94,0.89,1.0
+(mean over questions),,0.97,0.99,0.95,0.98

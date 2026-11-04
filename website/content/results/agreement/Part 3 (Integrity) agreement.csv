@@ -1,0 +1,27 @@
+Question,Code,FrontierMath,GDPval,METR Time Horizon / HCAST task suite,SWE-bench Pro
+Protocol rules,Model/system eligibility or configuration,1.0,1.0,1.0,1.0
+Protocol rules,task selection/randomization,1.0,0.67,0.67,0.67
+Protocol rules,submission/retry/rerun rules,0.67,1.0,1.0,0.67
+Protocol rules,failure/exclusion handling,0.67,0.67,1.0,1.0
+Protocol rules,result reporting/publication rules,1.0,1.0,1.0,1.0
+Protocol rules,none documented,1.0,1.0,1.0,1.0
+Protocol rules,(mean over codes),0.89,0.89,0.94,0.89
+Ex-ante fixation,Dated/versioned protocol,1.0,0.67,1.0,0.67
+Ex-ante fixation,preregistration or immutable commitment,1.0,1.0,1.0,1.0
+Ex-ante fixation,third-party/escrow confirmation,1.0,1.0,1.0,1.0
+Ex-ante fixation,none documented,1.0,0.67,1.0,0.67
+Ex-ante fixation,(mean over codes),1.0,0.83,1.0,0.83
+Run provenance,Benchmark version/snapshot,1.0,1.0,1.0,1.0
+Run provenance,model version/checkpoint,1.0,0.67,1.0,1.0
+Run provenance,inference/system configuration,1.0,0.67,1.0,0.67
+Run provenance,evaluator/scorer version,0.67,1.0,1.0,1.0
+Run provenance,run date,0.67,1.0,1.0,1.0
+Run provenance,task subset/seed/session,1.0,0.67,1.0,0.67
+Run provenance,none documented,1.0,0.67,1.0,1.0
+Run provenance,(mean over codes),0.9,0.81,1.0,0.9
+Run audit evidence,Public outputs/logs/run record,0.67,1.0,1.0,1.0
+Run audit evidence,controlled-access run records,0.67,1.0,0.67,1.0
+Run audit evidence,evaluator or third-party replay possible,0.67,0.67,1.0,1.0
+Run audit evidence,none documented,1.0,0.67,1.0,1.0
+Run audit evidence,(mean over codes),0.75,0.83,0.92,1.0
+(mean over questions),,0.89,0.84,0.97,0.91

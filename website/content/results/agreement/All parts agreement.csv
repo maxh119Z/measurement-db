@@ -1,0 +1,5 @@
+Benchmark,Mean agreement over all questions,Questions scored
+FrontierMath,0.88,21
+GDPval,0.89,21
+METR Time Horizon / HCAST task suite,0.95,21
+SWE-bench Pro,0.92,18

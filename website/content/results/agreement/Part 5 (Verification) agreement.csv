@@ -1,0 +1,13 @@
+Question,Code,FrontierMath,GDPval,METR Time Horizon / HCAST task suite,SWE-bench Pro
+External verification status,,0.67,1.0,1.0,1.0
+Verifier relationship,,0.67,0.67,1.0,N/A
+Verification scope,Protected content/coverage,0.67,1.0,1.0,N/A
+Verification scope,scoring/rubric,1.0,0.67,1.0,N/A
+Verification scope,run/execution records,1.0,0.67,0.67,N/A
+Verification scope,access/participant records,1.0,1.0,1.0,N/A
+Verification scope,governance/conflicts,1.0,1.0,1.0,N/A
+Verification scope,public documentation only,1.0,1.0,1.0,N/A
+Verification scope,N/A,1.0,1.0,1.0,N/A
+Verification scope,(mean over codes),0.95,0.9,0.95,N/A
+Findings disclosure,,0.67,1.0,1.0,N/A
+(mean over questions),,0.74,0.89,0.99,1.0

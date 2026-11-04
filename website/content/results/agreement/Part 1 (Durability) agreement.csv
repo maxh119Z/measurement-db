@@ -1,0 +1,41 @@
+Question,Code,FrontierMath,GDPval,METR Time Horizon / HCAST task suite,SWE-bench Pro
+Privacy rationale,Contamination/leakage,1.0,0.67,1.0,1.0
+Privacy rationale,adaptive gaming/overfitting,1.0,0.67,1.0,1.0
+Privacy rationale,confidentiality/legal,0.67,0.67,1.0,1.0
+Privacy rationale,proprietary/IP,0.67,1.0,1.0,0.67
+Privacy rationale,fair or blind evaluation,0.67,1.0,1.0,1.0
+Privacy rationale,security/safety,1.0,1.0,1.0,1.0
+Privacy rationale,not reported,1.0,0.67,1.0,1.0
+Privacy rationale,(mean over codes),0.86,0.81,1.0,0.95
+Protected component,Items/tasks,1.0,1.0,1.0,1.0
+Protected component,labels/reference answers,1.0,0.67,1.0,1.0
+Protected component,rubric/judge/scorer,1.0,0.67,1.0,0.67
+Protected component,test membership/distribution,1.0,1.0,1.0,1.0
+Protected component,environment/tools/data,1.0,0.67,0.67,1.0
+Protected component,aggregation/reporting rules,1.0,1.0,1.0,1.0
+Protected component,run logs/configuration,0.67,1.0,1.0,1.0
+Protected component,(mean over codes),0.95,0.86,0.95,0.95
+Restricted audience,Evaluated provider/team,1.0,1.0,1.0,1.0
+Restricted audience,benchmark participant/user,0.67,1.0,1.0,1.0
+Restricted audience,independent researcher,0.67,1.0,1.0,1.0
+Restricted audience,general public,1.0,1.0,1.0,1.0
+Restricted audience,customer/client,0.67,1.0,1.0,1.0
+Restricted audience,Other,,,0.67,
+Restricted audience,(mean over codes),0.8,1.0,0.94,1.0
+Secrecy lifecycle,,0.67,0.67,0.67,1.0
+Evaluation access,Prediction submission to server,1.0,0.67,1.0,1.0
+Evaluation access,hosted task/evaluation API,1.0,1.0,1.0,1.0
+Evaluation access,evaluator runs the model/system,1.0,1.0,1.0,1.0
+Evaluation access,submitted code/container,1.0,1.0,1.0,1.0
+Evaluation access,secure/controlled environment,1.0,1.0,1.0,0.67
+Evaluation access,third-party platform/custodian,1.0,1.0,1.0,1.0
+Evaluation access,(mean over codes),1.0,0.94,1.0,0.94
+Durability controls,Submission/rate limits,1.0,1.0,1.0,1.0
+Durability controls,refresh/rotation,1.0,1.0,0.67,1.0
+Durability controls,fresh/on-demand generation,1.0,1.0,1.0,1.0
+Durability controls,contamination/overlap monitoring,1.0,1.0,0.67,1.0
+Durability controls,access controls,1.0,0.67,1.0,1.0
+Durability controls,retirement/replacement,0.67,1.0,0.67,1.0
+Durability controls,none documented,1.0,0.67,1.0,1.0
+Durability controls,(mean over codes),0.95,0.9,0.86,1.0
+(mean over questions),,0.87,0.86,0.9,0.97

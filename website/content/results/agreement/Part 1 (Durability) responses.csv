@@ -1,0 +1,35 @@
+Question,Code,FrontierMath,GDPval,METR Time Horizon / HCAST task suite,SWE-bench Pro
+Privacy rationale,Contamination/leakage,3 of 3,1 of 3,3 of 3,3 of 3
+Privacy rationale,adaptive gaming/overfitting,3 of 3,1 of 3,3 of 3,0 of 3
+Privacy rationale,confidentiality/legal,2 of 3,2 of 3,0 of 3,3 of 3
+Privacy rationale,proprietary/IP,1 of 3,0 of 3,0 of 3,1 of 3
+Privacy rationale,fair or blind evaluation,2 of 3,0 of 3,0 of 3,0 of 3
+Privacy rationale,security/safety,0 of 3,0 of 3,0 of 3,0 of 3
+Privacy rationale,not reported,0 of 3,1 of 3,0 of 3,0 of 3
+Protected component,Items/tasks,3 of 3,3 of 3,3 of 3,3 of 3
+Protected component,labels/reference answers,3 of 3,2 of 3,3 of 3,3 of 3
+Protected component,rubric/judge/scorer,0 of 3,1 of 3,3 of 3,2 of 3
+Protected component,test membership/distribution,0 of 3,0 of 3,0 of 3,0 of 3
+Protected component,environment/tools/data,0 of 3,1 of 3,2 of 3,3 of 3
+Protected component,aggregation/reporting rules,0 of 3,0 of 3,0 of 3,0 of 3
+Protected component,run logs/configuration,1 of 3,3 of 3,0 of 3,0 of 3
+Restricted audience,Evaluated provider/team,3 of 3,0 of 3,0 of 3,3 of 3
+Restricted audience,benchmark participant/user,1 of 3,0 of 3,0 of 3,0 of 3
+Restricted audience,independent researcher,1 of 3,0 of 3,0 of 3,0 of 3
+Restricted audience,general public,3 of 3,3 of 3,3 of 3,3 of 3
+Restricted audience,customer/client,2 of 3,0 of 3,0 of 3,0 of 3
+Restricted audience,Other,,,1 of 3 [Other: Agent],
+Secrecy lifecycle,,Indefinite/no planned release (2); not reported (1),Indefinite/no planned release (2); not reported (1),Indefinite/no planned release (2); not reported (1),Indefinite/no planned release (3)
+Evaluation access,Prediction submission to server,0 of 3,1 of 3,0 of 3,0 of 3
+Evaluation access,hosted task/evaluation API,0 of 3,0 of 3,0 of 3,0 of 3
+Evaluation access,evaluator runs the model/system,3 of 3,3 of 3,3 of 3,3 of 3
+Evaluation access,submitted code/container,0 of 3,0 of 3,0 of 3,0 of 3
+Evaluation access,secure/controlled environment,0 of 3,0 of 3,0 of 3,1 of 3
+Evaluation access,third-party platform/custodian,0 of 3,0 of 3,0 of 3,0 of 3
+Durability controls,Submission/rate limits,0 of 3,0 of 3,0 of 3,0 of 3
+Durability controls,refresh/rotation,0 of 3,0 of 3,1 of 3,0 of 3
+Durability controls,fresh/on-demand generation,0 of 3,0 of 3,0 of 3,0 of 3
+Durability controls,contamination/overlap monitoring,3 of 3,0 of 3,1 of 3,0 of 3
+Durability controls,access controls,3 of 3,1 of 3,3 of 3,3 of 3
+Durability controls,retirement/replacement,1 of 3,0 of 3,2 of 3,0 of 3
+Durability controls,none documented,0 of 3,2 of 3,0 of 3,0 of 3

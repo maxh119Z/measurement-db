@@ -1,0 +1,22 @@
+Question,Code,FrontierMath,GDPval,METR Time Horizon / HCAST task suite,SWE-bench Pro
+Protocol rules,Model/system eligibility or configuration,3 of 3,3 of 3,3 of 3,3 of 3
+Protocol rules,task selection/randomization,3 of 3,2 of 3,2 of 3,2 of 3
+Protocol rules,submission/retry/rerun rules,2 of 3,3 of 3,3 of 3,1 of 3
+Protocol rules,failure/exclusion handling,2 of 3,2 of 3,3 of 3,3 of 3
+Protocol rules,result reporting/publication rules,3 of 3,0 of 3,3 of 3,3 of 3
+Protocol rules,none documented,0 of 3,0 of 3,0 of 3,0 of 3
+Ex-ante fixation,Dated/versioned protocol,3 of 3,1 of 3,3 of 3,1 of 3
+Ex-ante fixation,preregistration or immutable commitment,0 of 3,0 of 3,0 of 3,0 of 3
+Ex-ante fixation,third-party/escrow confirmation,0 of 3,0 of 3,0 of 3,0 of 3
+Ex-ante fixation,none documented,0 of 3,2 of 3,0 of 3,2 of 3
+Run provenance,Benchmark version/snapshot,3 of 3,0 of 3,3 of 3,0 of 3
+Run provenance,model version/checkpoint,3 of 3,2 of 3,3 of 3,3 of 3
+Run provenance,inference/system configuration,3 of 3,2 of 3,3 of 3,2 of 3
+Run provenance,evaluator/scorer version,1 of 3,0 of 3,0 of 3,0 of 3
+Run provenance,run date,2 of 3,0 of 3,3 of 3,0 of 3
+Run provenance,task subset/seed/session,3 of 3,1 of 3,3 of 3,1 of 3
+Run provenance,none documented,0 of 3,1 of 3,0 of 3,0 of 3
+Run audit evidence,Public outputs/logs/run record,2 of 3,0 of 3,3 of 3,0 of 3
+Run audit evidence,controlled-access run records,2 of 3,0 of 3,2 of 3,0 of 3
+Run audit evidence,evaluator or third-party replay possible,2 of 3,1 of 3,3 of 3,0 of 3
+Run audit evidence,none documented,0 of 3,2 of 3,0 of 3,3 of 3

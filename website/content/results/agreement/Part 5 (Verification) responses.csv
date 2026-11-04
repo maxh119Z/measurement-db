@@ -1,0 +1,11 @@
+Question,Code,FrontierMath,GDPval,METR Time Horizon / HCAST task suite,SWE-bench Pro
+External verification status,,no external verification located (2); operator reports external verification only (1),Verifier-authored or other external evidence located (3),Verifier-authored or other external evidence located (3),no external verification located (3)
+Verifier relationship,,(blank) (2); external with a material tie (1),relationship unclear (2); external with a material tie (1),Independent external (3),N/A
+Verification scope,Protected content/coverage,1 of 3,0 of 3,0 of 3,N/A
+Verification scope,scoring/rubric,0 of 3,1 of 3,3 of 3,N/A
+Verification scope,run/execution records,0 of 3,1 of 3,2 of 3,N/A
+Verification scope,access/participant records,0 of 3,0 of 3,0 of 3,N/A
+Verification scope,governance/conflicts,0 of 3,0 of 3,0 of 3,N/A
+Verification scope,public documentation only,0 of 3,3 of 3,3 of 3,N/A
+Verification scope,N/A,0 of 3,0 of 3,0 of 3,N/A
+Findings disclosure,,(blank) (2); Detailed public findings (1),Detailed public findings (3),Detailed public findings (3),N/A
