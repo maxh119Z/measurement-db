@@ -48,6 +48,27 @@ names out in its scope section and per-source attributions; decide whether that
 should be stripped before the repo goes public. The site footer also credits a
 team member by name, which is unrelated to annotator anonymity.
 
+## Page structure (`/annotations`)
+
+```
+hero
+Annotated so far  legend, then one block per codebook part, each comparing all
+                  four benchmarks on one question (cards link to /[slug]):
+                    1 Durability    Protected component  + hidden from / release /
+                                    how models run, status chip, evidence cutoff
+                    2 Validity      Hidden-set coverage evidence
+                    3 Integrity     Run audit evidence
+                    4 Neutrality    Evaluator–provider ties
+                    5 Verification  External verification status
+How consistently  one agreement panel per benchmark: overall + per part,
+we coded          observed vs chance (paper's equal-weight majority share)
+```
+
+The question per part, its blurb and the short option labels are editorial, in
+`content/annotation-comparisons.ts`. Squares: filled = 2–3 of 3 annotators,
+dot = 1, empty = 0; splits print as `2/3`; not-located codes sit after a rule.
+Nothing on the page is summed or ranked.
+
 ## Page structure (`/annotations/frontiermath`)
 
 ```
@@ -56,8 +77,8 @@ header            operator · domain · version · stamp-free meta row
                   summary + its drafting brief
 By claim          4 rows: Validity, Integrity, Neutrality, Verification
                   × Strengths | Concerns | What would make it checkable
-By item           mindmap (computed layout) with verbatim questions, selection
-                  tallies, QAA/QRAA per question, BAA/RAA under the root
+By item           mindmap with verbatim questions and selection tallies; the
+                  agreement toggle adds the paper's figures (see below)
                   → public open-questions panel, 1 (Verification split)
 Evidence quality  rubric pulldown (verbatim) → heatmap → All codes + Summary slot
                   → band pulldowns → question → code → per-annotator scores
@@ -73,15 +94,32 @@ website/annotations/
   frontiermath-sources.md    38 normalized sources from the FrontierMath records
   test.html                  standalone mock the design came from (gitignored)
 
+website/content/results/
+  codebook.csv                 Codebook v3.1: variables, types, option lists
+  agreement/*responses.csv     per-option tallies ("3 of 3"), all benchmarks
+  agreement/*agreement.csv     per-question majority share, per part
+  agreement/All parts agreement.csv
+  Part 1..5 *.csv              raw form exports (not read by the site)
+
 website/content/annotations.ts            all page data, hand-maintained
+website/content/annotation-comparisons.ts index: question per part, labels
+website/lib/annotation-results.ts         reads content/results at build time
+website/components/annotation-comparison.tsx  index comparison cards
+website/components/annotation-agreement.tsx   index agreement panels
 website/components/annotation-mindmap.tsx tree, layout computed at build
 website/components/evidence-quality.tsx   rubric + band/question/code pulldowns
 website/components/evidence-heatmap.tsx   question × dimension grid
 website/app/annotations/                  index + /[slug] report pages
 ```
 
-Nothing fetches Google Sheets at build time. The CSVs are parsed by hand when
-regenerating figures, and the results are written into `annotations.ts`.
+Nothing fetches Google Sheets at build time. The index page reads the tables in
+`content/results` as the site builds (`lib/annotation-results.ts`); replace those
+files to update it. Each benchmark's `resultsName` in `annotations.ts` is its
+column header there. The loader throws on anything that doesn't line up (an
+unknown column, a codebook option with no tally), so a bad export fails the
+build rather than showing a wrong figure. The benchmark pages are still
+hand-transcribed into `annotations.ts`, except their agreement figures, which
+come from the same tables.
 
 **No coordinates live in the data.** The mindmap computes its own layout: leaf
 blocks size themselves from their content, a band sits at the mean anchor of its
@@ -89,26 +127,30 @@ leaves, the root at the middle. Text is wrapped at build time from a
 character-width estimate, because SVG `<text>` does not wrap — if a line
 overflows, adjust `CHARS` in the component.
 
-## Agreement figures (the tree)
+## Agreement figures
 
-Majority share per selectable box: the fraction of annotators agreeing with the
-most common answer. A box nobody ticked counts — all three agreed to leave it,
-so it scores 1.0.
+Everywhere on the site, agreement is the paper's measure and its numbers
+(appendix, "Annotation Agreement"), read from `content/results/agreement`:
 
-- **QAA / QRAA** — per question: observed, and the same question answered at
-  random. QRAA is 0.750 for any checkbox question (each box is an independent
-  y/n: 2 unanimous + 6 split × 2/3, over 8 outcomes). For single-select with N
-  options it is `(N² + 3N − 1) / 3N²`.
-- **BAA / RAA** — the same two pooled across the instrument, kept separate for
-  multi- and single-select because their baselines differ.
+- **Majority share** per question: the fraction of the three annotators giving
+  the most common answer. A multi-select question scores the mean over its
+  allowed codes, plus Other when someone used it; a code nobody picked scores
+  1.0 (all three agreed it does not apply).
+- **Mean (n = …)** per part and overall: question scores averaged with equal
+  weight; n is the number of questions scored. A skipped follow-up counts as
+  selecting nothing, and a question is excluded when every annotator skipped it
+  or coded N/A (so SWE-bench Pro scores 18 of 21).
+- **Chance**: 0.75 per multi-select question, `(n² + 3n − 1) / 3n²` for a
+  single-select with n options (0.63 for three, 0.49 for six), averaged over the
+  same questions: 0.70 for the full instrument, 0.72 for SWE-bench Pro.
 
-FrontierMath: multi 0.9348 over 92 boxes (random 0.750); single 0.8333 over 4
-questions (random 0.5949). Per-question values reproduce the working sheet
-exactly; the pooled multi figure does not — see open questions.
+FrontierMath: 0.88 (n = 21) overall; by part 0.87 (n = 6), 0.97 (n = 4),
+0.89 (n = 4), 0.99 (n = 3), 0.74 (n = 4). Verification's n counts three
+follow-up questions that have no leaf in the tree; the band says so.
 
-Option lists come from the Codebook v3.1 sheet, **not** from the responses: a
-checkbox nobody ticked is invisible in the exports. The 92 count includes the
-`other`/`unclear` options and the conditional `Verification scope` question.
+Values print to two decimals, as the paper does. The tables are already
+rounded, so recomputing a part mean from its question scores can differ in the
+second decimal — the site shows the paper's own mean rows.
 
 ## Evidence quality (Rubric v1)
 
@@ -187,20 +229,6 @@ question (cheap, over-attributes), or match on quote text rather than header
 
 ## Open questions
 
-- **Pooled BAA doesn't reconcile.** 92 boxes agreed, share totals don't: 86.0
-  here against 85.3 in the working sheet. 85.3 cannot be produced by majority
-  shares of 1 and 2/3 over 92 binary boxes — it needs 20.1 split boxes — so
-  roughly two boxes are treated differently somewhere. Likely the blank handling
-  on `Verification scope`, where two annotators left the question empty and this
-  code reads empty as "nothing ticked".
-- **`other` / `unclear` boxes** are scored, which is what gets the count to 92.
-  They're free text, so agreement on them is not well defined, and the Part 1
-  working sheet leaves them blank instead.
-- **Conditional questions.** `Verification scope` enters the pooled BAA but has
-  no leaf, because it only applies when an external check occurred.
-- **Display vs maths.** Exclusive codes are hidden at 0/n in the tree but still
-  count toward the 92 and the QAA, so the visible rows no longer sum to the
-  stated denominator.
 - **Search completeness is coded but not shown.** It rates how hard an annotator
   looked before concluding a code had no support, which is what makes a negative
   finding credible. Different scale from the four dimensions, and it attaches to

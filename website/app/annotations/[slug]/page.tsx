@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ActionLink } from "@/components/action-link";
-import { AnnotationMindmap } from "@/components/annotation-mindmap";
+import {
+  AnnotationMindmap,
+  type TreeAgreement,
+} from "@/components/annotation-mindmap";
 import { EvidenceCeilings } from "@/components/evidence-ceilings";
 import { EvidenceHeatmap } from "@/components/evidence-heatmap";
 import {
@@ -17,6 +20,10 @@ import {
   type Annotation,
   type ClaimAssessment,
 } from "@/content/annotations";
+import {
+  loadAnnotationResults,
+  type AnnotationResults,
+} from "@/lib/annotation-results";
 
 type AnnotationPageProps = {
   params: Promise<{ slug: string }>;
@@ -139,12 +146,34 @@ const columns = [
   { key: "channels", label: "What would make it checkable", tone: "channel" },
 ] as const;
 
+/** This benchmark's agreement scores from content/results, in the paper's
+ *  format; undefined when the tables have no column for it. */
+function treeAgreement(
+  results: AnnotationResults,
+  slug: string,
+): TreeAgreement | undefined {
+  const overall = results.agreement.overall[slug];
+  if (!overall) return undefined;
+  const parts = Object.fromEntries(
+    results.agreement.parts.flatMap((part) =>
+      part.bySlug[slug] ? [[part.label.toLowerCase(), part.bySlug[slug]]] : [],
+    ),
+  );
+  const questions = Object.fromEntries(
+    Object.entries(results.agreement.questions).flatMap(([variable, bySlug]) =>
+      bySlug[slug] ? [[variable, bySlug[slug]]] : [],
+    ),
+  );
+  return { overall, parts, questions };
+}
+
 export default async function AnnotationReportPage({
   params,
 }: AnnotationPageProps) {
   const { slug } = await params;
   const annotation = getAnnotation(slug);
   if (!annotation) notFound();
+  const agreement = treeAgreement(await loadAnnotationResults(), slug);
 
   const eyebrow = eyebrowParts(annotation);
 
@@ -355,7 +384,7 @@ export default async function AnnotationReportPage({
               <AnnotationMindmap
                 benchmarkName={annotation.name}
                 bands={annotation.bands}
-                agreement={annotation.agreement}
+                agreement={agreement}
               />
               <Caption label="Figure 1">
                 Every coded item, grouped under the five codebook parts, with

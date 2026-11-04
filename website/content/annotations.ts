@@ -137,31 +137,10 @@ export type Leaf = {
   /** One sentence of detail, revealed on hover/focus. */
   detail: string;
   status: LeafStatus;
-  /** Per-option selection tallies, verbatim from the form. */
+  /** Per-option selection tallies, verbatim from the form. Agreement scores
+   *  are not stored here: the page reads them from content/results, in the
+   *  paper's format. */
   votes?: readonly Vote[];
-  /** Question annotator agreement: mean majority share over this question's
-   *  options (multi-select) or the majority share of the chosen option
-   *  (single-select). */
-  qaa?: number;
-  /** The chance baseline for this question. For multi-select it is always
-   *  0.75 — each checkbox is an independent y/n with expected majority share
-   *  (2 unanimous + 6 split x 2/3) / 8. For single-select with N options it is
-   *  (N^2 + 3N - 1) / 3N^2, so it falls as the option list grows. */
-  qraa?: number;
-  kind?: "multi" | "single";
-  /** Number of options the form offered for this question. */
-  options?: number;
-};
-
-/** Agreement across the whole instrument, kept separate for multi- and
- *  single-select because their chance baselines differ. */
-export type Agreement = {
-  multiBoxes: number;
-  multiObserved: number;
-  multiRandom: number;
-  singleCount: number;
-  singleObserved: number;
-  singleRandom: number;
 };
 
 /** One part of the codebook. `scored` is false for Durability, which the
@@ -187,6 +166,8 @@ export type Annotation = {
   /** URL segment under /annotations. */
   slug: string;
   name: string;
+  /** This benchmark's column header in the content/results tables. */
+  resultsName: string;
   status: AnnotationStatus;
   /** Eyebrow line: operator · domain · version. */
   operator: string | null;
@@ -212,8 +193,6 @@ export type Annotation = {
   annotators: readonly string[];
   /** Frozen corpus cutoff — every code is tied to evidence available by then. */
   cutoff: string | null;
-  /** Instrument-wide annotator agreement, shown under the root node. */
-  agreement?: Agreement;
   /** Open questions shown publicly under the tree: coding splits the public
    *  evidence does not settle. Internal to-dos (page inconsistencies, counting
    *  rules still to decide) are tracked privately and do not belong here. An
@@ -235,6 +214,7 @@ export const annotations: readonly Annotation[] = [
   {
     slug: "frontiermath",
     name: "FrontierMath",
+    resultsName: "FrontierMath",
     status: "context-coded",
     operator: "Epoch AI",
     domain: "Research-level mathematics",
@@ -260,10 +240,6 @@ export const annotations: readonly Annotation[] = [
             detail:
               "Contamination, adaptive gaming, confidentiality and fair evaluation.",
             status: "desc",
-            qaa: 0.875,
-            qraa: 0.75,
-            kind: "multi",
-            options: 8,
             votes: [
               { code: "adaptive gaming/overfitting", k: 3, n: 3 },
               { code: "contamination/leakage", k: 3, n: 3 },
@@ -281,10 +257,6 @@ export const annotations: readonly Annotation[] = [
             sub: "Problems, answers",
             detail: "The problems and their reference answers.",
             status: "desc",
-            qaa: 0.9583,
-            qraa: 0.75,
-            kind: "multi",
-            options: 8,
             votes: [
               { code: "items/tasks", k: 3, n: 3 },
               { code: "labels/reference answers", k: 3, n: 3 },
@@ -303,10 +275,6 @@ export const annotations: readonly Annotation[] = [
             sub: "Developers, public, clients",
             detail: "Evaluated developers, the public and customers.",
             status: "desc",
-            qaa: 0.8571,
-            qraa: 0.75,
-            kind: "multi",
-            options: 7,
             votes: [
               { code: "Evaluated provider/team", k: 3, n: 3 },
               { code: "general public", k: 3, n: 3 },
@@ -324,10 +292,6 @@ export const annotations: readonly Annotation[] = [
             sub: "None planned",
             detail: "No release of the hidden set is planned.",
             status: "desc",
-            qaa: 0.6667,
-            qraa: 0.4907,
-            kind: "single",
-            options: 6,
             votes: [
               { code: "Indefinite/no planned release", k: 2, n: 3 },
               { code: "not reported", k: 1, n: 3 },
@@ -340,10 +304,6 @@ export const annotations: readonly Annotation[] = [
             sub: "Epoch runs them",
             detail: "Epoch runs every model itself.",
             status: "desc",
-            qaa: 1.0,
-            qraa: 0.75,
-            kind: "multi",
-            options: 7,
             votes: [
               { code: "evaluator runs the model/system", k: 3, n: 3 },
               { code: "hosted task/evaluation API", k: 0, n: 3 },
@@ -361,10 +321,6 @@ export const annotations: readonly Annotation[] = [
             sub: "Access limits, leak checks",
             detail: "Access controls and contamination monitoring.",
             status: "desc",
-            qaa: 0.9524,
-            qraa: 0.75,
-            kind: "multi",
-            options: 7,
             votes: [
               { code: "access controls", k: 3, n: 3 },
               { code: "contamination/overlap monitoring", k: 3, n: 3 },
@@ -388,10 +344,6 @@ export const annotations: readonly Annotation[] = [
             sub: "Documented",
             detail: "Excludes proofs and open research.",
             status: "ok",
-            qaa: 1.0,
-            qraa: 0.75,
-            kind: "multi",
-            options: 5,
             votes: [
               { code: "intended use or decision purpose", k: 3, n: 3 },
               { code: "limits or out-of-scope interpretation", k: 3, n: 3 },
@@ -406,10 +358,6 @@ export const annotations: readonly Annotation[] = [
             sub: "Documented",
             detail: "12 public sample problems.",
             status: "ok",
-            qaa: 0.8889,
-            qraa: 0.75,
-            kind: "multi",
-            options: 3,
             votes: [
               { code: "Representative public items/dev set", k: 3, n: 3 },
               { code: "detailed task blueprint/schema", k: 2, n: 3 },
@@ -423,10 +371,6 @@ export const annotations: readonly Annotation[] = [
             detail:
               "Expert-reviewed, but never compared with the public problems.",
             status: "part",
-            qaa: 1.0,
-            qraa: 0.75,
-            kind: "multi",
-            options: 4,
             votes: [
               { code: "documented expert or independent review of hidden set", k: 3, n: 3 },
               { code: "Sampling/source method documented", k: 3, n: 3 },
@@ -440,10 +384,6 @@ export const annotations: readonly Annotation[] = [
             sub: "Documented",
             detail: "Answer-checking code is public.",
             status: "ok",
-            qaa: 1.0,
-            qraa: 0.75,
-            kind: "multi",
-            options: 6,
             votes: [
               { code: "aggregation/threshold rules public", k: 3, n: 3 },
               { code: "judge/scorer details public", k: 3, n: 3 },
@@ -466,10 +406,6 @@ export const annotations: readonly Annotation[] = [
             sub: "Documented",
             detail: "Token limits, forced submission, zero for no answer.",
             status: "ok",
-            qaa: 0.8889,
-            qraa: 0.75,
-            kind: "multi",
-            options: 6,
             votes: [
               { code: "Model/system eligibility or configuration", k: 3, n: 3 },
               { code: "result reporting/publication rules", k: 3, n: 3 },
@@ -485,10 +421,6 @@ export const annotations: readonly Annotation[] = [
             sub: "Partial",
             detail: "Dated versions, but no hash or preregistration.",
             status: "part",
-            qaa: 1.0,
-            qraa: 0.75,
-            kind: "multi",
-            options: 4,
             votes: [
               { code: "Dated/versioned protocol", k: 3, n: 3 },
               { code: "preregistration or immutable commitment", k: 0, n: 3 },
@@ -502,10 +434,6 @@ export const annotations: readonly Annotation[] = [
             sub: "Documented",
             detail: "Version, model, settings and date. No scorer version.",
             status: "ok",
-            qaa: 0.9048,
-            qraa: 0.75,
-            kind: "multi",
-            options: 7,
             votes: [
               { code: "Benchmark version/snapshot", k: 3, n: 3 },
               { code: "inference/system configuration", k: 3, n: 3 },
@@ -522,10 +450,6 @@ export const annotations: readonly Annotation[] = [
             sub: "Partial",
             detail: "Logs only for the 10 public problems.",
             status: "part",
-            qaa: 0.75,
-            qraa: 0.75,
-            kind: "multi",
-            options: 4,
             votes: [
               { code: "controlled-access run records", k: 2, n: 3 },
               { code: "evaluator or third-party replay possible", k: 2, n: 3 },
@@ -546,10 +470,6 @@ export const annotations: readonly Annotation[] = [
             sub: "Documented",
             detail: "Epoch reports only models it can run itself.",
             status: "ok",
-            qaa: 1.0,
-            qraa: 0.6296,
-            kind: "single",
-            options: 3,
             votes: [
               { code: "Public", k: 3, n: 3 },
             ],
@@ -561,10 +481,6 @@ export const annotations: readonly Annotation[] = [
             sub: "Disclosed risk",
             detail: "OpenAI has exclusive access to some problems.",
             status: "risk",
-            qaa: 1.0,
-            qraa: 0.6296,
-            kind: "single",
-            options: 3,
             votes: [
               { code: "differential/privileged treatment disclosed or permitted", k: 3, n: 3 },
             ],
@@ -576,10 +492,6 @@ export const annotations: readonly Annotation[] = [
             sub: "Disclosed risk",
             detail: "OpenAI funded and commissioned the problems.",
             status: "risk",
-            qaa: 0.9583,
-            qraa: 0.75,
-            kind: "multi",
-            options: 8,
             votes: [
               { code: "customer/vendor relationship", k: 3, n: 3 },
               { code: "funding/sponsorship", k: 3, n: 3 },
@@ -604,10 +516,6 @@ export const annotations: readonly Annotation[] = [
             detail:
               "Reviews so far were commissioned by Epoch or done by OpenAI.",
             status: "gap",
-            qaa: 0.6667,
-            qraa: 0.6296,
-            kind: "single",
-            options: 3,
             votes: [
               { code: "no external verification located", k: 2, n: 3 },
               { code: "operator reports external verification only", k: 1, n: 3 },
@@ -813,14 +721,6 @@ export const annotations: readonly Annotation[] = [
     ],
     annotators: ["MZ", "AP", "NT"],
     cutoff: "2026-10-18",
-    agreement: {
-      multiBoxes: 92,
-      multiObserved: 0.9348,
-      multiRandom: 0.75,
-      singleCount: 4,
-      singleObserved: 0.8333,
-      singleRandom: 0.5949,
-    },
     reconcile: [
       "Verification is 2–1, not settled. One annotator coded “operator reports external verification only”, citing Epoch-commissioned blind reviews and mathematician interviews; the other two excluded both as construction-stage and operator-commissioned.",
     ],
@@ -828,6 +728,7 @@ export const annotations: readonly Annotation[] = [
   {
     slug: "swebench_pro",
     name: "SWE-Bench Pro",
+    resultsName: "SWE-bench Pro",
     status: "context-coded",
     operator: "Scale AI",
     domain: "Repository-level software engineering",
@@ -861,6 +762,7 @@ export const annotations: readonly Annotation[] = [
   {
     slug: "hcast",
     name: "METR Time Horizon / HCAST",
+    resultsName: "METR Time Horizon / HCAST task suite",
     status: "context-coded",
     operator: "METR",
     domain: "Autonomous software and research tasks",
@@ -903,6 +805,7 @@ export const annotations: readonly Annotation[] = [
   {
     slug: "gdpval",
     name: "GDPval",
+    resultsName: "GDPval",
     status: "context-coded",
     operator: "OpenAI",
     domain: "Economically valuable occupational tasks",

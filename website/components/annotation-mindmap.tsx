@@ -1,4 +1,5 @@
-import type { Agreement, Band, Leaf, LeafStatus } from "@/content/annotations";
+import type { Band, Leaf, LeafStatus } from "@/content/annotations";
+import type { AgreementRow, QuestionAgreement } from "@/lib/annotation-results";
 import { claims, codeDefinition } from "@/content/annotations";
 import { TreeConnectors } from "./tree-connectors";
 
@@ -28,6 +29,29 @@ const BAND_DEF: Record<string, string> = {
    ============================================================ */
 
 type Side = "left" | "right";
+
+/** Annotator agreement in the paper's format (appendix, "Annotation
+ *  Agreement"): each question's majority share, and equal-weight means over
+ *  the scored questions per part and overall, each beside its chance
+ *  baseline. Read from content/results by the page. */
+export type TreeAgreement = {
+  overall: AgreementRow;
+  /** Keyed by band id. */
+  parts: Record<string, AgreementRow>;
+  /** Keyed by lower-cased codebook variable name. */
+  questions: Record<string, QuestionAgreement>;
+};
+
+/** The codebook variable a leaf answers: its question reads
+ *  "Variable — question text". */
+function variableOf(leaf: Leaf): string {
+  return leaf.question.split(" — ")[0].trim().toLowerCase();
+}
+
+/** "0.87 (n = 6)", as the paper labels its agreement figures. */
+function meanLabel(row: AgreementRow): string {
+  return `${row.observed.toFixed(2)} (n = ${row.questions})`;
+}
 
 const SIDE_OF: Record<string, Side> = {
   durability: "right",
@@ -128,15 +152,20 @@ function Chevron() {
   );
 }
 
-/** One coded item. Closed it is the verbatim question plus its agreement
- *  score; open it adds the coded answer and every per-option tally. */
-function LeafItem({ leaf, side }: { leaf: Leaf; side: Side }) {
-  const agree =
-    leaf.qaa != null && leaf.qraa != null
-      ? `QAA ${leaf.qaa.toFixed(3)}  ·  QRAA ${leaf.qraa.toFixed(3)}${
-          leaf.kind === "single" ? `  (1 of ${leaf.options})` : ""
-        }`
-      : null;
+/** One coded item. Closed it is the verbatim question; open it adds every
+ *  per-option tally and, when agreement is shown, the question's score. */
+function LeafItem({
+  leaf,
+  side,
+  score,
+}: {
+  leaf: Leaf;
+  side: Side;
+  score: QuestionAgreement | null;
+}) {
+  const agree = score
+    ? `Majority share ${score.observed.toFixed(2)}  ·  chance ${score.chance.toFixed(2)}`
+    : null;
   const mirror = side === "left";
 
   return (
@@ -189,7 +218,7 @@ function LeafItem({ leaf, side }: { leaf: Leaf; side: Side }) {
           </ul>
         ) : null}
         {agree ? (
-          <p className="rd-agree rd-mono !text-[0.6rem] tabular-nums opacity-50">
+          <p className="rd-agree rd-mono !text-[0.6rem] !normal-case tabular-nums opacity-50">
             {agree}
           </p>
         ) : null}
@@ -203,12 +232,17 @@ function BandBlock({
   band,
   index,
   side,
+  agreement,
 }: {
   band: Band;
   index: number;
   side: Side;
+  agreement?: TreeAgreement;
 }) {
   const mirror = side === "left";
+  const part = agreement?.parts[band.id];
+  // Verification's three follow-up questions are scored but have no leaf.
+  const unseen = part ? part.questions - band.leaves.length : 0;
   return (
     <section
       className={`relative flex flex-col gap-2 ${mirror ? "lg:items-end" : ""}`}
@@ -223,6 +257,23 @@ function BandBlock({
         {BAND_DEF[band.id] ? (
           <span className="hidden max-w-sm text-sm font-light leading-snug opacity-60 peer-hover:block">
             {BAND_DEF[band.id]}
+          </span>
+        ) : null}
+        {part ? (
+          <span
+            className={`rd-agree rd-mono !text-[0.6rem] !normal-case tabular-nums opacity-50 ${
+              mirror ? "lg:text-right" : ""
+            }`}
+          >
+            <span className="block">
+              Mean {meanLabel(part)} &middot; chance {part.chance.toFixed(2)}
+            </span>
+            {unseen > 0 ? (
+              <span className="block">
+                n includes {unseen} follow-up question{unseen === 1 ? "" : "s"}{" "}
+                not drawn here
+              </span>
+            ) : null}
           </span>
         ) : null}
       </div>
@@ -240,12 +291,23 @@ function BandBlock({
                 : "before:-left-5"
             }`}
           >
-            <LeafItem leaf={leaf} side={side} />
+            <LeafItem
+              leaf={leaf}
+              side={side}
+              score={agreement ? questionScore(agreement, leaf) : null}
+            />
           </li>
         ))}
       </ul>
     </section>
   );
+}
+
+function questionScore(agreement: TreeAgreement, leaf: Leaf): QuestionAgreement {
+  const score = agreement.questions[variableOf(leaf)];
+  if (!score)
+    throw new Error(`No agreement score in content/results for "${leaf.question}"`);
+  return score;
 }
 
 export function AnnotationMindmap({
@@ -255,7 +317,7 @@ export function AnnotationMindmap({
 }: {
   benchmarkName: string;
   bands: readonly Band[];
-  agreement?: Agreement;
+  agreement?: TreeAgreement;
 }) {
   if (bands.length === 0) return null;
 
@@ -281,6 +343,7 @@ export function AnnotationMindmap({
                 band={band}
                 index={index}
                 side="left"
+                agreement={agreement}
               />
             ))}
           </div>
@@ -295,21 +358,15 @@ export function AnnotationMindmap({
               >
                 {benchmarkName}
               </span>
-              {/* Instrument-wide agreement, split because multi- and
-                  single-select have different chance baselines. */}
+              {/* Mean agreement over every scored question, as the paper
+                  reports it. */}
               {agreement ? (
-                <span className="rd-agree rd-mono !text-[0.62rem] space-y-1 bg-[var(--rd-sage)] px-3 py-1 text-center tabular-nums opacity-60">
+                <span className="rd-agree rd-mono !text-[0.62rem] !normal-case space-y-1 bg-[var(--rd-sage)] px-3 py-1 text-center tabular-nums opacity-60">
                   <span className="block">
-                    RAA {agreement.multiRandom.toFixed(3)} multi &middot;{" "}
-                    {agreement.singleRandom.toFixed(3)} single
-                  </span>
-                  <span className="block">
-                    BAA {agreement.multiObserved.toFixed(3)} multi &middot;{" "}
-                    {agreement.singleObserved.toFixed(3)} single
+                    Mean agreement {meanLabel(agreement.overall)}
                   </span>
                   <span className="block opacity-75">
-                    {agreement.multiBoxes} boxes &middot;{" "}
-                    {agreement.singleCount} single-select
+                    Chance {agreement.overall.chance.toFixed(2)}
                   </span>
                 </span>
               ) : null}
@@ -323,6 +380,7 @@ export function AnnotationMindmap({
                 band={band}
                 index={index}
                 side="right"
+                agreement={agreement}
               />
             ))}
           </div>
@@ -351,18 +409,17 @@ function Key() {
   ];
   const terms = [
     [
-      "QAA",
-      "question annotator agreement — mean majority share over this question's options",
+      "Majority share",
+      "the fraction of the three annotators who gave the most common answer. A multi-select question scores the mean over its options, so an option nobody picked counts as agreement that it does not apply.",
     ],
     [
-      "QRAA",
-      "the same question answered at random — 0.750 for any checkbox question, lower for single-select with more options",
+      "Mean (n = …)",
+      "the average over a part's scored questions, or all of them at the centre, each question weighted equally; n is the number of questions.",
     ],
     [
-      "BAA",
-      "benchmark annotator agreement — the QAA figures pooled across the whole instrument",
+      "Chance",
+      "what answering at random would score on the same questions: 0.75 for a multi-select question, falling from 0.63 to 0.49 for single-select questions with three to six options.",
     ],
-    ["RAA", "the chance baseline pooled the same way"],
   ];
   return (
     <div className="mt-8 flex flex-col gap-4">
@@ -415,15 +472,17 @@ function Key() {
                 key={abbr}
                 className="flex items-baseline gap-2.5 text-sm font-light"
               >
-                <span className="rd-mono !text-[0.62rem] w-12 shrink-0">
+                <span className="rd-mono !text-[0.62rem] w-28 shrink-0">
                   {abbr}
                 </span>
                 <span className="opacity-60">{gloss}</span>
               </span>
             ))}
             <span className="mt-1 text-sm font-light opacity-55">
-              A score at or near its random baseline means the coders were no
-              more consistent than chance, not that the benchmark did badly.
+              With three annotators a multi-select option cannot score below
+              2/3, so scores sit near the top of the scale. A score near its
+              chance level means the coders were no more consistent than
+              chance, not that the benchmark did badly.
             </span>
           </div>
         </div>
