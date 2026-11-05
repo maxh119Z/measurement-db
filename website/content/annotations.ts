@@ -585,7 +585,8 @@ export const annotations: readonly Annotation[] = [
       status: "None located for the commercial set",
       sources: [],
     },
-    summary: null,
+    summary:
+      "Its claim, task format and scoring rules are all documented, so SWE-bench Pro is clear about what it measures. Its weak point is any particular run: no snapshot, run date or retained logs, so no score can be traced back. And no outside party has checked the private set.",
     readingScores: null,
     bands: [
       {
@@ -732,7 +733,58 @@ export const annotations: readonly Annotation[] = [
         ],
       },
     ],
-    claims: uncodedClaims,
+    claims: {
+      validity: {
+        strengths: [
+          "All four framing elements are stated: what's measured, its intended use, the domain and the limits.",
+          "Sampling method and a public-versus-private comparison are both published.",
+          "Metric, scorer and aggregation rules are all public.",
+        ],
+        concerns: [
+          "No expert or independent review of the hidden set is documented.",
+        ],
+        channels: [
+          "A review of the commercial tasks by someone outside Scale.",
+        ],
+      },
+      integrity: {
+        strengths: [
+          "Eligibility, task selection, failure handling and reporting rules are documented.",
+          "The model version is named for every reported score.",
+        ],
+        concerns: [
+          "A run names its model version, but no dataset snapshot and no run date.",
+          "No run records are retained, so no score can be replayed.",
+        ],
+        channels: [
+          "A snapshot hash and run date with every score.",
+          "Retained logs, or a third party allowed to replay the commercial set.",
+        ],
+      },
+      neutrality: {
+        strengths: [
+          "Scale's ties to the providers it ranks are on the record, and both sides agree on the facts.",
+        ],
+        concerns: [
+          "Meta holds a minority stake in Scale and is among the ranked providers, and Scale sells data services to others it ranks \u2014 none of it noted on the benchmark's own pages.",
+          "The leaderboard legend permits different turn and cost budgets between entries.",
+        ],
+        channels: [
+          "The ties disclosed on the benchmark's own pages, not only in corporate announcements.",
+          "Published entry rules, and who ran each evaluation.",
+        ],
+      },
+      verification: {
+        strengths: [],
+        concerns: [
+          "No external check of the private set was located.",
+          "The published critiques all work from the public tasks, so they don't carry to the 276 commercial ones.",
+        ],
+        channels: [
+          "An outside party allowed to run the commercial set and publish what it finds.",
+        ],
+      },
+    },
     links: [
       {
         label: "SWE-bench Pro open-source repository, v2",
@@ -863,7 +915,8 @@ export const annotations: readonly Annotation[] = [
         },
       ],
     },
-    summary: null,
+    summary:
+      "Its runs are traceable end to end \u2014 dated protocol, full provenance, public logs and analysis code \u2014 so outsiders have actually replayed the analysis. Its weak point is independence: the labs it scores supply pre-release access and free tokens, and one held a right to review conclusions before publication. Outside statisticians checked the maths and dispute part of it.",
     readingScores: null,
     bands: [
       {
@@ -1028,7 +1081,63 @@ export const annotations: readonly Annotation[] = [
         ],
       },
     ],
-    claims: uncodedClaims,
+    claims: {
+      validity: {
+        strengths: [
+          "All four framing elements are stated, including explicit notes on what the metric is not.",
+          "Sampling method and a public-versus-private comparison are both published.",
+          "The metric is public both as a formula and as runnable analysis code.",
+        ],
+        concerns: [
+          "The per-task scorers and the run transcripts are withheld, so an individual grading can't be checked.",
+          "Until March 2026 the published code fitted a penalized regression rather than the logistic fit described, and the fix moved 50% horizons by up to 20%.",
+        ],
+        channels: [
+          "The per-task scorers released, or an outside review of a sample of gradings.",
+        ],
+      },
+      integrity: {
+        strengths: [
+          "The protocol is dated and versioned, with a published hash of the private task repository.",
+          "Every reported score carries its snapshot, model version, configuration, run date and task subset.",
+          "Run outcomes for all 228 tasks are public, and a third party reproduced the analysis from them.",
+        ],
+        concerns: [
+          "The attempts per task are given as 8, 6 and 4 across the research note, the dashboard and the released run file.",
+          "One suite version and repository hash cover several task versions: 101 of 157 HCAST tasks ran on two or three.",
+        ],
+        channels: [
+          "One stated attempt count, reconciled with the released runs.",
+          "Per-version task hashes, so a run maps to the exact task it used.",
+        ],
+      },
+      neutrality: {
+        strengths: [
+          "The participation rules are public, and the unequal access is disclosed rather than left unstated.",
+          "METR states it takes no funding from AI companies, and publishes a dated conflict-of-interest policy.",
+        ],
+        concerns: [
+          "The labs it scores supply pre-release access under NDA, free tokens and privileged API access.",
+          "One provider held a right to review conclusions before publication; METR says nothing was changed, with no pre-review draft to show.",
+        ],
+        channels: [
+          "The pre-review draft, or a third party attesting that the review changed nothing.",
+        ],
+      },
+      verification: {
+        strengths: [
+          "An outside re-analysis by university statisticians with no documented tie, published in full with its findings.",
+          "The check was possible because METR released the run outcomes and the analysis code.",
+        ],
+        concerns: [
+          "No check reached the private task content, the transcripts or METR's internal records.",
+          "The re-analysis concludes the 80% horizons overstate capability by roughly an order of magnitude, and nothing reconciles that with METR's figures.",
+        ],
+        channels: [
+          "Controlled access to the private tasks and transcripts for an outside reviewer.",
+        ],
+      },
+    },
     links: [
       {
         label: "Time horizons dashboard (no longer actively updated, 2026-09-08)",
@@ -1227,7 +1336,8 @@ export const annotations: readonly Annotation[] = [
         },
       ],
     },
-    summary: null,
+    summary:
+      "Its task documentation is unusually complete, down to an expert review of the hidden set. Its weak point is independence: OpenAI built GDPval, grades it, and is one of the providers it ranks. Outside parties have checked it and published findings, but only on the public tasks.",
     readingScores: null,
     bands: [
       {
@@ -1392,7 +1502,61 @@ export const annotations: readonly Annotation[] = [
         ],
       },
     ],
-    claims: uncodedClaims,
+    claims: {
+      validity: {
+        strengths: [
+          "All four framing elements are stated: what's measured, its intended use, the domain and the limits.",
+          "Sampling, a public-versus-private comparison and an expert review of the hidden set are all published.",
+          "Metric, judge details and aggregation rules are public.",
+        ],
+        concerns: [
+          "The criteria the judge applies are not published.",
+          "The paper's file counts don't match the published gold data: Table 6 gives up to 38 reference files per task, the text says 17.",
+        ],
+        channels: [
+          "The rubric the judge applies, published alongside the metric.",
+        ],
+      },
+      integrity: {
+        strengths: [
+          "Eligibility, submission and rerun rules are documented.",
+          "The metric and judge are public enough that a third party reimplemented the run.",
+        ],
+        concerns: [
+          "The public dataset changed after release without documentation: 39 of 220 tasks have different reference inputs between the September 2025 and February 2026 snapshots.",
+          "A third-party replay of GPT-5 scored 47.3% through OpenAI's own grader against 31.9% on OpenAI's leaderboard, and nothing reconciles the two.",
+        ],
+        channels: [
+          "A dated snapshot and a changelog for the dataset.",
+          "OpenAI's own run records, or a published reconciliation of the two figures.",
+        ],
+      },
+      neutrality: {
+        strengths: [
+          "The unequal treatment is disclosed rather than left unstated.",
+        ],
+        concerns: [
+          "OpenAI built GDPval, grades it, and is one of the providers it ranks.",
+          "OpenAI's models ran through the API with tools, others through consumer interfaces, with prompt tuning and best-of-N only for GPT-5.",
+        ],
+        channels: [
+          "Scoring by a party that does not also submit models.",
+          "One evaluation setup applied to every model, or the gap quantified.",
+        ],
+      },
+      verification: {
+        strengths: [
+          "An outside replication, an independent recount and the ICLR reviews are all public, with methods, results and detailed findings.",
+        ],
+        concerns: [
+          "None of the checks reached the hidden set; all worked from the 220 public tasks or the paper.",
+          "The main replication was published through a project with a documented OpenAI partnership, so its independence is unclear.",
+        ],
+        channels: [
+          "A check of the hidden tasks by a party with no OpenAI tie.",
+        ],
+      },
+    },
     links: [
       {
         label: "GDPval launch post (Sep 25, 2025)",
@@ -3734,9 +3898,12 @@ export const evidenceRubricText = `
 `;
 
 /** Same structure as above. */
-export const swebenchProEvidenceSummary = "[to be done later]";
-export const hcastEvidenceSummary = "[to be done later]";
-export const gdpvalEvidenceSummary = "[to be done later]";
+export const swebenchProEvidenceSummary =
+  "Almost all the evidence is Scale's own account: 96 of 102 rated codes cite the operator, one an independent source. Nothing reached Confirmed, meaning checked by someone other than the source. D: the reasons for withholding are assertion, 33 of 34 only Stated. V: the most checkable, 27 of 34 pointing at something an outsider can inspect. I: the weakest, 12 of 19 only Stated, and the one place a source is Contradicted. N: the only band with an independent source and Cross-party corroboration, 5 of 15, because both sides report the ties. Ver: no rated codes, because no external check of the private set was found.";
+export const hcastEvidenceSummary =
+  "Most of the evidence is METR's own account, but it is unusually inspectable: 101 of 143 rated codes point at something an outsider can check, and one is Confirmed, meaning checked by someone other than the source. All 17 independent sources sit in Verification. D: the reasons for withholding are mostly assertion, 21 of 33 only Stated. V: 30 of 37 Inspectable, and the metric is the one code confirmed from outside. I: the largest band and the most precise, 27 of 40 Exact. N: all 16 codes come from METR itself, so its ties are disclosed only by the party to them. Ver: every code Inspectable and every source Independent, because outside statisticians re-analysed the published data.";
+export const gdpvalEvidenceSummary =
+  "Most of the evidence is OpenAI's own account: 59 of 98 rated codes cite the operator and 34 an interested or informal source, leaving five independent. Nothing was contradicted, but nothing reached Confirmed either. D: the reasons for withholding are assertion, all 23 codes only Stated. V: 24 of 37 point at something an outsider can inspect, though a third rest on informal sources. I: the weakest, 13 of 17 only Stated. N: the fewest codes, 7, but the most precise, 5 of them Exact. Ver: the strongest band, every code Inspectable and all five independent sources sitting here, because the outside checks are public and detailed.";
 
 export const swebenchProEvidenceQuality: readonly BandQuality[] = [
   {
