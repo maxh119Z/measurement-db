@@ -4,6 +4,7 @@ import { ActionLink } from "@/components/action-link";
 import {
   AnnotationMindmap,
   type TreeAgreement,
+  type TreeTallies,
 } from "@/components/annotation-mindmap";
 import { EvidenceCeilings } from "@/components/evidence-ceilings";
 import { EvidenceHeatmap } from "@/components/evidence-heatmap";
@@ -13,8 +14,7 @@ import {
 } from "@/components/evidence-quality";
 import {
   annotations,
-  frontierMathEvidenceQuality,
-  frontierMathEvidenceSummary,
+  evidenceQualityBySlug,
   claims,
   getAnnotation,
   type Annotation,
@@ -167,13 +167,41 @@ function treeAgreement(
   return { overall, parts, questions };
 }
 
+/** A code that is exclusive of the positive options: it can only be selected
+ *  when nothing else was. At 0 it carries no information — it says only that
+ *  something else was found — so it is left out rather than drawn as an
+ *  option nobody chose. Other unselected options are kept. */
+const isExclusiveGap = (code: string) =>
+  /^(not reported|none documented|unclear)$/i.test(code.trim()) ||
+  /\bno\b.*\b(located|documented)\b/i.test(code) ||
+  /\bnot located\b/i.test(code);
+
+/** This benchmark's per-option tallies, keyed by codebook variable. A null
+ *  tally means the question did not apply, so it is left out. */
+function treeTallies(results: AnnotationResults, slug: string): TreeTallies {
+  return Object.fromEntries(
+    Object.entries(results.questions).map(([variable, question]) => [
+      variable,
+      question.options.flatMap((option) => {
+        const tally = option.bySlug[slug];
+        if (!tally) return [];
+        if (tally.k === 0 && isExclusiveGap(option.code)) return [];
+        return [{ code: option.code, k: tally.k, n: tally.n }];
+      }),
+    ]),
+  );
+}
+
 export default async function AnnotationReportPage({
   params,
 }: AnnotationPageProps) {
   const { slug } = await params;
   const annotation = getAnnotation(slug);
   if (!annotation) notFound();
-  const agreement = treeAgreement(await loadAnnotationResults(), slug);
+  const results = await loadAnnotationResults();
+  const agreement = treeAgreement(results, slug);
+  const tallies = treeTallies(results, slug);
+  const evidence = evidenceQualityBySlug[slug];
 
   const eyebrow = eyebrowParts(annotation);
 
@@ -233,31 +261,19 @@ export default async function AnnotationReportPage({
             ) : null}
           </div>
 
-          <div className="mt-9 max-w-3xl border-l-2 border-black/20 pl-5">
-            {annotation.summary ? (
+          {/* STRUCTURE for `summary` in content/annotations.ts — keep every
+              benchmark's to the same shape: two or three sentences reading
+              across all four claims at once, saying which of them the public
+              evidence carries best, which is thinnest, and the one thing
+              somebody should know before they rely on a score from this
+              benchmark. */}
+          {annotation.summary ? (
+            <div className="mt-9 max-w-3xl border-l-2 border-black/20 pl-5">
               <p className="rd-serif-title text-xl leading-relaxed sm:text-2xl">
                 {annotation.summary}
               </p>
-            ) : null}
-            {/* DRAFTING AID — remove before publication. Kept beneath a written
-                summary so the brief stays visible while the wording is being
-                judged against it. */}
-            <p
-              className={`text-base font-light leading-relaxed opacity-45 ${
-                annotation.summary ? "mt-5 border-t border-black/10 pt-4" : ""
-              }`}
-            >
-              <span className="italic">
-                {annotation.summary
-                  ? "What this summary is for:"
-                  : "Summary not yet written."}
-              </span>{" "}
-              Two or three sentences reading across all four claims at once:
-              which of them the public evidence carries best, which is
-              thinnest, and the one thing somebody should know before they rely
-              on a score from this benchmark.
-            </p>
-          </div>
+            </div>
+          ) : null}
         </div>
       </section>
 
@@ -384,6 +400,7 @@ export default async function AnnotationReportPage({
               <AnnotationMindmap
                 benchmarkName={annotation.name}
                 bands={annotation.bands}
+                tallies={tallies}
                 agreement={agreement}
               />
               <Caption label="Figure 1">
@@ -399,20 +416,21 @@ export default async function AnnotationReportPage({
             </p>
           )}
 
-          {/* Public open questions: coding splits the evidence does not settle.
-              Internal to-dos are tracked privately, not here. */}
+          {/* Pre-publication checklist: inconsistencies in our own records that
+              need a decision. Comes off the page before the site goes public. */}
           {annotation.reconcile && annotation.reconcile.length > 0 ? (
             <div className="mt-12 border border-dashed border-black/30 bg-black/[0.035] p-6 sm:p-7">
               <p className="rd-mono !text-[0.62rem] uppercase tracking-wider opacity-60">
                 Working notes
               </p>
               <h3 className="rd-h3 mt-3">
-                Open questions &mdash; {annotation.reconcile.length}
+                Open questions &mdash; Resolve before publishing site
               </h3>
               <p className="rd-prose-wide mt-3 text-sm font-light leading-relaxed opacity-70">
-                Where the annotators split and the public evidence doesn&rsquo;t
-                settle it. These describe our coding, not findings about the
-                benchmark.
+                {annotation.reconcile.length} unresolved, all in our own
+                records rather than in the benchmark: a code carries evidence
+                scores without being selected, or is selected without them.
+                These describe our coding, not findings about the benchmark.
               </p>
               <ul className="mt-5 flex max-w-4xl flex-col gap-3">
                 {annotation.reconcile.map((note) => (
@@ -434,7 +452,7 @@ export default async function AnnotationReportPage({
       </section>
 
       {/* --------------------------------------------------- evidence quality */}
-      {annotation.slug === "frontiermath" ? (
+      {evidence ? (
         <section className="rd-white-band rd-band">
           <div className="rd-container">
             <p className="rd-mono opacity-60">Qualitative details</p>
@@ -450,10 +468,10 @@ export default async function AnnotationReportPage({
               means a reliable source saying something nobody outside can check. They are not meant to be aggregated.
             </p>
             <h3 className="rd-h3 mt-10">Where the evidence runs out</h3>
-            <EvidenceCeilings bands={frontierMathEvidenceQuality} />
-            <Caption label="Figure 2">{frontierMathEvidenceSummary}</Caption>
+            <EvidenceCeilings bands={evidence.bands} />
+            <Caption label="Figure 2">{evidence.summary}</Caption>
 
-            <EvidenceHeatmap bands={frontierMathEvidenceQuality} />
+            <EvidenceHeatmap bands={evidence.bands} />
             <Caption label="Figure 3">
               The same four scores per coded item rather than pooled, so a
               column can be read down to see which parts of the record rest on
@@ -472,7 +490,7 @@ export default async function AnnotationReportPage({
             </Caption>
 
             {/* Per-code rationale last: it is the most text on the page. */}
-            <EvidenceQuality bands={frontierMathEvidenceQuality} />
+            <EvidenceQuality bands={evidence.bands} />
             <Caption label="Table 3">
               Every rated code opened up to the annotators who scored it, with
               the quote and source each one cited, so any score here can be

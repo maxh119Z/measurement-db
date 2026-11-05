@@ -164,7 +164,8 @@ function Fact({
 
 function Legend() {
   return (
-    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-light opacity-80">
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-light opacity-80">
       <span className="flex items-center gap-2">
         <Square tally={{ k: 3, n: 3 }} /> two or three of three annotators
       </span>
@@ -181,10 +182,15 @@ function Legend() {
         a split, shown rather than rounded
       </span>
       <span className="flex items-center gap-2">
-        <span className="h-5 border-l border-black/25" aria-hidden />
-        <span className="italic">after the rule:</span> no evidence located, which
-        is not evidence of absence
-      </span>
+          <span className="h-5 border-l border-black/25" aria-hidden />
+          <span className="italic">after the rule:</span> no evidence found
+          <sup className="-top-1">*</sup>
+        </span>
+      </div>
+      <p className="text-sm font-light leading-relaxed opacity-60">
+        <sup className="-top-1">*</sup> No evidence found means we could not
+        find it written down anywhere public &mdash; not that it never happened.
+      </p>
     </div>
   );
 }

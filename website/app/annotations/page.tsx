@@ -102,8 +102,8 @@ export default async function AnnotationsIndexPage() {
         <div className="rd-container">
           <SectionHeading
             eyebrow={`${annotations.length} benchmarks`}
-            title="The records"
-            description="One record per benchmark, coded against a shared codebook and tied to evidence available at a frozen cutoff."
+            title="Benchmarks"
+            description="Each benchmark is coded against a shared codebook and tied to evidence available at a frozen cutoff."
           />
 
           <ScrollReveal stagger>
@@ -167,10 +167,9 @@ export default async function AnnotationsIndexPage() {
 
           <p className="rd-prose-wide mt-14 text-sm font-light leading-relaxed opacity-65">
             These codes describe the strength of publicly available evidence,
-            not a benchmark&rsquo;s quality, fairness or validity. A gap means
-            no supporting evidence was located after an adequate search &mdash;
-            it does not establish that a practice is absent. Making a claim
-            checkable is also not the same as someone having checked it.
+            not a benchmark&rsquo;s quality. A gap means no supporting evidence
+            was located after an adequate search: it does not establish that a
+            practice is absent.
           </p>
         </div>
       </section>
@@ -181,7 +180,7 @@ export default async function AnnotationsIndexPage() {
           <SectionHeading
             eyebrow="Annotator agreement"
             title="How consistently we coded"
-            description="Agreement is the share of the three annotators who gave the most common answer, averaged over questions. The tick marks what answering at random would score on the same questions. It shows how hard a question was to code, not anything about the benchmark."
+            description="Agreement is the share of the three annotators who gave the most common answer, averaged over questions. The tick marks what random chance agreement would be on the same questions."
           />
           <AnnotationAgreement
             annotations={annotations}

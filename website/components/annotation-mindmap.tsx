@@ -35,6 +35,14 @@ export type TreeAgreement = {
   questions: Record<string, QuestionAgreement>;
 };
 
+/** Per-option selection tallies for this benchmark, keyed by lower-cased
+ *  codebook variable. Read from content/results by the page rather than stored
+ *  per leaf, so the tree and the comparison tables cannot disagree. */
+export type TreeTallies = Record<
+  string,
+  readonly { code: string; k: number; n: number }[]
+>;
+
 /** The codebook variable a leaf answers: its question reads
  *  "Variable — question text". */
 function variableOf(leaf: Leaf): string {
@@ -151,10 +159,12 @@ function LeafItem({
   leaf,
   side,
   score,
+  votes,
 }: {
   leaf: Leaf;
   side: Side;
   score: QuestionAgreement | null;
+  votes: TreeTallies[string];
 }) {
   const agree = score
     ? `Majority share ${score.observed.toFixed(2)}  ·  chance ${score.chance.toFixed(2)}`
@@ -180,9 +190,9 @@ function LeafItem({
           mirror ? "lg:items-end lg:text-right" : ""
         }`}
       >
-        {leaf.votes && leaf.votes.length > 0 ? (
+        {votes.length > 0 ? (
           <ul className="flex flex-col gap-1">
-            {leaf.votes.map((vote) => {
+            {votes.map((vote) => {
               const def = codeDefinition(vote.code);
               return (
                 <li
@@ -226,11 +236,13 @@ function BandBlock({
   index,
   side,
   agreement,
+  tallies,
 }: {
   band: Band;
   index: number;
   side: Side;
   agreement?: TreeAgreement;
+  tallies: TreeTallies;
 }) {
   const mirror = side === "left";
   const part = agreement?.parts[band.id];
@@ -288,6 +300,7 @@ function BandBlock({
               leaf={leaf}
               side={side}
               score={agreement ? questionScore(agreement, leaf) : null}
+              votes={tallies[variableOf(leaf)] ?? []}
             />
           </li>
         ))}
@@ -307,10 +320,12 @@ export function AnnotationMindmap({
   benchmarkName,
   bands,
   agreement,
+  tallies,
 }: {
   benchmarkName: string;
   bands: readonly Band[];
   agreement?: TreeAgreement;
+  tallies: TreeTallies;
 }) {
   if (bands.length === 0) return null;
 
@@ -337,6 +352,7 @@ export function AnnotationMindmap({
                 index={index}
                 side="left"
                 agreement={agreement}
+                tallies={tallies}
               />
             ))}
           </div>
@@ -374,6 +390,7 @@ export function AnnotationMindmap({
                 index={index}
                 side="right"
                 agreement={agreement}
+                tallies={tallies}
               />
             ))}
           </div>
@@ -411,7 +428,7 @@ function Key() {
     ],
     [
       "Chance",
-      "what answering at random would score on the same questions: 0.75 for a multi-select question, falling from 0.63 to 0.49 for single-select questions with three to six options.",
+      "what random chance agreement would be on the same questions: 0.75 for a multi-select question, falling from 0.63 to 0.49 for single-select questions with three to six options.",
     ],
   ];
   return (
